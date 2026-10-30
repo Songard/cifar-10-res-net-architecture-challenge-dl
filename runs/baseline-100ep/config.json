@@ -1,0 +1,23 @@
+{
+  "command": "train",
+  "run": "runs/baseline-100ep",
+  "epochs": 100,
+  "stop_after": null,
+  "seed": 2026,
+  "width": 32,
+  "lr": 0.1,
+  "pipeline": "batched",
+  "channels_last": false,
+  "resume": "runs/baseline-100ep/last.pt",
+  "data": "data",
+  "batch_size": 128,
+  "device": "mps",
+  "parameter_count": 2797610,
+  "torch_version": "2.15.0",
+  "platform": "macOS-26.5.1-arm64-arm-64bit",
+  "code_sha256": {
+    "model.py": "07ea97031d1643f3ced6d7de092b26f1f02d25baf821f9c32a5419eab84e9992",
+    "train.py": "8c40bf054af11d551770017eea117aa24bee147747b022a69517f583bbe806d8",
+    "prepare_data.py": "0b67bbbb2a483d1d54696d09c0cd232d7332a36cd2847ad1c06e040842c4d1a0"
+  }
+}

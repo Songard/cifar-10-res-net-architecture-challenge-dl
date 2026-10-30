@@ -1,0 +1,16 @@
+{
+  "arch": "resnet18-64-352",
+  "epochs": 200,
+  "batch_size": 256,
+  "lr": 0.2,
+  "weight_decay": 0.0005,
+  "bn_weight_decay": false,
+  "warmup_epochs": 5,
+  "lr_per_step": true,
+  "pipeline": "trivialaugment",
+  "padding_mode": "reflect",
+  "cutout": 16,
+  "label_smoothing": 0.1,
+  "ema_decay": 0.999,
+  "amp": "bf16"
+}

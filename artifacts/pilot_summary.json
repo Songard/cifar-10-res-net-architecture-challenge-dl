@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "run": "baseline-3ep",
+      "epochs_completed": 3,
+      "best_validation_accuracy": 0.6576,
+      "mean_train_seconds_excluding_first_epoch": 11.985421166522428,
+      "mean_total_epoch_seconds_excluding_first_epoch": 12.399385916651227,
+      "max_process_peak_rss_gb": 0.74973184,
+      "max_sampled_mps_driver_gb": 1.154056192,
+      "memory_note": "Process RSS and MPS driver accounting are not additive on unified memory; sampled GPU accounting is not an exact activation peak.",
+      "estimated_remaining_to_100_epochs_minutes": 20.04567389858615
+    },
+    {
+      "run": "batched-5ep",
+      "epochs_completed": 5,
+      "best_validation_accuracy": 0.7756,
+      "mean_train_seconds_excluding_first_epoch": 12.22496796847554,
+      "mean_total_epoch_seconds_excluding_first_epoch": 12.652156259980984,
+      "max_process_peak_rss_gb": 0.763150336,
+      "max_sampled_mps_driver_gb": 1.154056192,
+      "memory_note": "Process RSS and MPS driver accounting are not additive on unified memory; sampled GPU accounting is not an exact activation peak.",
+      "estimated_remaining_to_100_epochs_minutes": 20.03258074496989
+    }
+  ],
+  "comparison_scope": "Same architecture, initial seed, split, batch size, optimizer and learning-rate schedule. CPU and MPS augmentation consume different random streams; this is a throughput pilot, not evidence of an accuracy advantage.",
+  "long_run_estimate_note": "Linear extrapolation of short measured runs, not a completed full run; thermal load and other applications may change timing.",
+  "kaggle_submissions": 0
+}

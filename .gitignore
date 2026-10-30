@@ -1,0 +1,39 @@
+.venv/
+# data: only the audit and import receipt are published, never competition images or caches
+data/*
+!data/official_import_receipt.json
+!data/cache/
+data/cache/*
+!data/cache/audit.json
+# runs: per-epoch logs, settings and submission audits are published; checkpoints and predictions are not
+runs/**
+!runs/*/
+!runs/*/metrics.jsonl
+!runs/*/config.json
+!runs/*/submission.audit.json
+__pycache__/
+*.pyc
+.DS_Store
+.env
+*token*
+artifacts/submission*
+CLAUDE_HANDOFF*.md
+official/
+artifacts/download-diagnosis-*.json
+.ipynb_checkpoints/
+logs/*.out
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.log
+report/*.xdv
+report/main.pdf
+artifacts/registration-and-submission-audit-*.json
+# LaTeX build outputs and the local draft PDF
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.log
+report/*.xdv
+report/*.pdf
+!report/figures/*.pdf

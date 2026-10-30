@@ -1,0 +1,50 @@
+{
+  "source": "https://www.kaggle.com/competitions/cifar-10-res-net-architecture-challenge-dl/data",
+  "train_images": 50000,
+  "test_images": 2000,
+  "train_class_counts": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+  ],
+  "training_split": 45000,
+  "validation_split": 5000,
+  "split_seed": 2026,
+  "validation_class_counts": [
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500
+  ],
+  "train_duplicates_excluded_to_avoid_validation_leakage": [],
+  "normalization_training_only_mean": [
+    0.4915136056883228,
+    0.48231472093708955,
+    0.4468138477797955
+  ],
+  "normalization_training_only_std": [
+    0.24705092971850243,
+    0.24347972180913904,
+    0.26150950903175735
+  ],
+  "ordered_image_file_digest_sha256": "484c0298f982427833aed92ab414d8babe0f3a7ee78421cf97bb7432f462e3bf",
+  "csv_sha256": {
+    "train_labels.csv": "b596f4cbb12107ecac987e3a61123af40408a6bb83719a1dbb5cc3ce70968e93",
+    "test.csv": "d0db3026e3a7bc397d6f59b7ff6825960cc32a5e2aef57df63c9140b2ad31e5d",
+    "sample_submission.csv": "83aa7ddd58d46026c3b3f870f507c33b178ebfbdf24e0a69d9f7a9d6d8cfff59"
+  },
+  "test_labels_accessed": false
+}

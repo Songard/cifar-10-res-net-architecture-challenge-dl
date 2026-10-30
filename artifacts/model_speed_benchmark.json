@@ -1,0 +1,150 @@
+{
+  "purpose": "speed only; repeated real training images and arbitrary labels; no retained model",
+  "torch": "2.15.0",
+  "results": [
+    {
+      "arch": "resnet18-w32",
+      "amp": "none",
+      "batch_size": 256,
+      "parameters": 2797610,
+      "median_step_seconds": 0.12141731253359467,
+      "images_per_second": 2108.4307884772857,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.529973248,
+        "mps_allocated_gb": 0.038715904,
+        "mps_driver_gb": 1.162412032
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-w32",
+      "amp": "bf16",
+      "batch_size": 256,
+      "parameters": 2797610,
+      "median_step_seconds": 0.07370791654102504,
+      "images_per_second": 3473.1683109983596,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.540164096,
+        "mps_allocated_gb": 0.037274112,
+        "mps_driver_gb": 1.162395648
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-w32",
+      "amp": "fp16",
+      "batch_size": 256,
+      "parameters": 2797610,
+      "median_step_seconds": 0.07776599994394928,
+      "images_per_second": 3291.9270656136987,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.545816576,
+        "mps_allocated_gb": 0.038192128,
+        "mps_driver_gb": 1.162395648
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-w42",
+      "amp": "none",
+      "batch_size": 256,
+      "parameters": 4815940,
+      "median_step_seconds": 0.2805222290335223,
+      "images_per_second": 912.5836511494713,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.563658752,
+        "mps_allocated_gb": 0.062955008,
+        "mps_driver_gb": 1.248395264
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-w42",
+      "amp": "bf16",
+      "batch_size": 256,
+      "parameters": 4815940,
+      "median_step_seconds": 0.11558627139311284,
+      "images_per_second": 2214.7959001924655,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.568393728,
+        "mps_allocated_gb": 0.0619392,
+        "mps_driver_gb": 2.326331392
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-w42",
+      "amp": "fp16",
+      "batch_size": 256,
+      "parameters": 4815940,
+      "median_step_seconds": 0.12131481256801635,
+      "images_per_second": 2110.2122204283264,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.572227584,
+        "mps_allocated_gb": 0.061939712,
+        "mps_driver_gb": 2.326331392
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-64-352",
+      "amp": "none",
+      "batch_size": 256,
+      "parameters": 4797002,
+      "median_step_seconds": 0.25041602086275816,
+      "images_per_second": 1022.298809469152,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.5771264,
+        "mps_allocated_gb": 0.065813504,
+        "mps_driver_gb": 2.351497216
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-64-352",
+      "amp": "bf16",
+      "batch_size": 256,
+      "parameters": 4797002,
+      "median_step_seconds": 0.15986191644333303,
+      "images_per_second": 1601.3820282878035,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.577961984,
+        "mps_allocated_gb": 0.065354752,
+        "mps_driver_gb": 2.307457024
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    },
+    {
+      "arch": "resnet18-64-352",
+      "amp": "fp16",
+      "batch_size": 256,
+      "parameters": 4797002,
+      "median_step_seconds": 0.16494427050929517,
+      "images_per_second": 1552.0393597762072,
+      "finite_loss": true,
+      "sampled_memory_max": {
+        "rss_gb": 0.578895872,
+        "mps_allocated_gb": 0.06509312,
+        "mps_driver_gb": 2.307457024
+      },
+      "warmup_steps": 5,
+      "measured_steps": 20
+    }
+  ]
+}

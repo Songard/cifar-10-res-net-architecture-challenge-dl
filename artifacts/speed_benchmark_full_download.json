@@ -1,0 +1,86 @@
+{
+  "purpose": "speed only; repeated real training images and arbitrary labels; no retained model",
+  "torch": "2.15.0",
+  "results": [
+    {
+      "pipeline": "per-image",
+      "channels_last": false,
+      "batch_size": 128,
+      "mean_step_seconds": 0.03661215133809795,
+      "median_step_seconds": 0.03675195842515677,
+      "images_per_second": 3496.1070388345493,
+      "sampled_memory_max": {
+        "rss_gb": 0.565215232,
+        "mps_allocated_gb": 0.037535232,
+        "mps_driver_gb": 1.145208832
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": false,
+      "batch_size": 128,
+      "mean_step_seconds": 0.034807416843250394,
+      "median_step_seconds": 0.0349495830014348,
+      "images_per_second": 3677.3771686772225,
+      "sampled_memory_max": {
+        "rss_gb": 0.566657024,
+        "mps_allocated_gb": 0.037666304,
+        "mps_driver_gb": 1.145192448
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": false,
+      "batch_size": 256,
+      "mean_step_seconds": 0.06763234038371593,
+      "median_step_seconds": 0.0677865834441036,
+      "images_per_second": 3785.171392082093,
+      "sampled_memory_max": {
+        "rss_gb": 0.572424192,
+        "mps_allocated_gb": 0.038846976,
+        "mps_driver_gb": 1.17874688
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": false,
+      "batch_size": 512,
+      "mean_step_seconds": 0.1370067652470122,
+      "median_step_seconds": 0.13692508346866816,
+      "images_per_second": 3737.0417371500243,
+      "sampled_memory_max": {
+        "rss_gb": 0.57729024,
+        "mps_allocated_gb": 0.040946176,
+        "mps_driver_gb": 2.353152
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": true,
+      "batch_size": 128,
+      "mean_step_seconds": 0.06729180005689463,
+      "median_step_seconds": 0.06648579193279147,
+      "images_per_second": 1902.163412061754,
+      "sampled_memory_max": {
+        "rss_gb": 0.58392576,
+        "mps_allocated_gb": 0.035700224,
+        "mps_driver_gb": 1.212727296
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    }
+  ]
+}

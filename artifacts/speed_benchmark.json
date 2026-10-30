@@ -1,0 +1,70 @@
+{
+  "purpose": "speed only; repeated real training images and arbitrary labels; no retained model",
+  "torch": "2.15.0",
+  "results": [
+    {
+      "pipeline": "per-image",
+      "channels_last": false,
+      "batch_size": 128,
+      "mean_step_seconds": 0.028817705654849608,
+      "median_step_seconds": 0.02876700006891042,
+      "images_per_second": 4441.713769064729,
+      "sampled_memory_max": {
+        "rss_gb": 0.527794176,
+        "mps_allocated_gb": 0.037535232,
+        "mps_driver_gb": 1.145192448
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": false,
+      "batch_size": 128,
+      "mean_step_seconds": 0.026676590197409193,
+      "median_step_seconds": 0.02662085392512381,
+      "images_per_second": 4798.214428935196,
+      "sampled_memory_max": {
+        "rss_gb": 0.529842176,
+        "mps_allocated_gb": 0.03740416,
+        "mps_driver_gb": 1.145192448
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": true,
+      "batch_size": 128,
+      "mean_step_seconds": 0.052803826448507604,
+      "median_step_seconds": 0.05269012495409697,
+      "images_per_second": 2424.0667506325703,
+      "sampled_memory_max": {
+        "rss_gb": 0.535805952,
+        "mps_allocated_gb": 0.035700224,
+        "mps_driver_gb": 1.145618432
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    },
+    {
+      "pipeline": "batched",
+      "channels_last": true,
+      "batch_size": 256,
+      "mean_step_seconds": 0.11585104730911552,
+      "median_step_seconds": 0.11578541656490415,
+      "images_per_second": 2209.734015756775,
+      "sampled_memory_max": {
+        "rss_gb": 0.54099968,
+        "mps_allocated_gb": 0.03845376,
+        "mps_driver_gb": 1.179172864
+      },
+      "parameters": 2797610,
+      "warmup_steps": 5,
+      "measured_steps": 30
+    }
+  ]
+}

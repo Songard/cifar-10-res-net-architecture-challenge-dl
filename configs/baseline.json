@@ -1,0 +1,16 @@
+{
+  "arch": "resnet18-w32",
+  "epochs": 100,
+  "batch_size": 128,
+  "lr": 0.1,
+  "weight_decay": 0.0005,
+  "bn_weight_decay": true,
+  "warmup_epochs": 5,
+  "lr_per_step": false,
+  "pipeline": "batched",
+  "padding_mode": "constant",
+  "cutout": 0,
+  "label_smoothing": 0.0,
+  "ema_decay": 0.0,
+  "amp": "none"
+}

@@ -1,0 +1,24 @@
+{
+  "source": "https://www.kaggle.com/competitions/cifar-10-res-net-architecture-challenge-dl/data",
+  "method": "Safari: select each train_images/test_images folder, then Download",
+  "external_dataset_used": false,
+  "folders": {
+    "train_images": {
+      "images": 50000,
+      "bytes": 113380676,
+      "ordered_sha256": "206332aa291028ee1bbf9eade59c67844bf34a89596cfeb63700bac98a935c06",
+      "existing_api_files_matched": 419,
+      "all_images_decoded": true,
+      "all_names_match_official_csv": true
+    },
+    "test_images": {
+      "images": 2000,
+      "bytes": 4576632,
+      "ordered_sha256": "37082942576b464c626b083bf11e06eaaa1f57a84a8dac4f35d93576e8e79eb3",
+      "existing_api_files_matched": 47,
+      "all_images_decoded": true,
+      "all_names_match_official_csv": true
+    }
+  },
+  "verified_at": "2026-10-29T15:57:38.537156-04:00"
+}
