@@ -1,8 +1,9 @@
 % NYU Fall 2026 Deep Learning, Project 1 report.
 % Built on the AAAI Press LaTeX template linked by the course
-% (https://www.overleaf.com/latex/templates/aaai-press-latex-template/jymjdgdpdmxp):
-% Style provenance is documented in STYLE_SOURCE.md.
+% (https://www.overleaf.com/latex/templates/aaai-press-latex-template/jymjdgdpdmxp);
+% style provenance is documented in STYLE_SOURCE.md.
 % The template forbids hyperref, natbib, geometry, titlesec, caption and T1 fontenc; none is used here.
+% Build: tectonic --keep-logs main.tex   (or pdflatex + bibtex + pdflatex x2)
 \documentclass[letterpaper]{article}
 \usepackage{aaai}
 \nocopyright
@@ -13,6 +14,7 @@
 \usepackage{helvet}
 \usepackage{courier}
 \usepackage{url}
+\def\UrlBreaks{\do\/\do\-\do\.\do\_}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -21,20 +23,21 @@
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
 \pdfinfo{
-/Title (A 4.8M-Parameter Residual Network for CIFAR-10 under a Parameter Budget)
+/Title (A 4.3M-Parameter Residual Network for CIFAR-10: Long Schedules, Distillation and Sharpness-Aware Training under a 5M Budget)
 /Author (Jiaqi Li)}
 \else
 \setlength{\paperwidth}{8.5in}
 \setlength{\paperheight}{11in}
-\special{pdf:docinfo << /Title (A 4.8M-Parameter Residual Network for CIFAR-10 under a Parameter Budget) /Author (Jiaqi Li) >>}
+\special{pdf:docinfo << /Title (A 4.3M-Parameter Residual Network for CIFAR-10) /Author (Jiaqi Li) >>}
 \fi
 \setcounter{secnumdepth}{2}
 
-\title{A 4.8M-Parameter Residual Network for CIFAR-10 under a Parameter Budget}
-\author{Jiaqi Li\\
+\newcommand{\pp}{\,pp}
+
+\title{A 4.3M-Parameter Residual Network for CIFAR-10:\\Long Schedules, Distillation and Sharpness-Aware Training under a 5M Budget}
+\author{Jiaqi Li (NetID jl18215)\\
 New York University, CS-GY 6953 / ECE-GY 7123 Deep Learning, Fall 2026\\
 Kaggle team: \texttt{jiaqi li nyu}\\
-% The repository is private during the competition; make it public before submitting this report.
 Code: \url{https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl}
 }
 
@@ -42,257 +45,459 @@ Code: \url{https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl
 \maketitle
 
 \begin{abstract}
-We design and train from scratch a residual convolutional network for 10-class CIFAR-10 image classification
-under a budget of 5 million trainable parameters. Our final network keeps the full-width first three stages of
-ResNet-18 and trims the parameter-heavy last stage to a single 352-channel block, for 4,797,002 parameters and
-453M multiply-accumulates per image. We pair it with a stronger training recipe: TrivialAugment, Cutout, label
-smoothing, a weight moving average, flip test-time augmentation and bf16 mixed precision. At the same 100-epoch
-budget, the new architecture and recipe together raise held-out validation accuracy from 94.48\% (a
-2.8M-parameter half-width ResNet-18 with the baseline recipe) to 96.42\%; we did not separate the two
-contributions. On the 1,000-image public half of the competition's hidden test set, the same model scores
-86.30\%. We attribute the 10-point gap to a likely distribution shift between the training and test images.
-Without test labels this remains a hypothesis, and we discuss what our evidence can and cannot rule out.
+We train a residual network from scratch for the course's CIFAR-10 competition under a limit of five million trainable
+parameters. The final network follows the three-stage ResNet-20 layout of He et al.\ at four times its width (64, 128 and
+256 channels; 4,327,754 parameters; 648M multiply-accumulates per image). It is trained with SGD over a single 1,800-epoch
+cosine cycle with TrivialAugment, Cutout, label smoothing and an exponential moving average of the weights, and evaluated
+with horizontal-flip test-time augmentation. On a fixed 5,000-image held-out split this plain recipe reaches 97.66\% and
+97.50\% for two seeds. Our two final submissions add knowledge distillation from two of our own from-scratch networks
+(97.62\% held-out, 90.1\% on the public leaderboard) and sharpness-aware minimization (97.58\%, 90.0\%). Across more than
+forty completed runs, the length of the schedule was the largest single lever: 96.7\% at 100 epochs, 97.3\% at 400 and
+97.6\% at 1,800. Beyond that point, longer plain training (2,300 and 3,000 epochs), stronger augmentation policies, three
+alternative residual layouts, distillation and sharpness-aware minimization all moved the held-out accuracy by less than one
+standard error of the measurement (0.22 points). Held-out and public accuracy are strongly correlated across our 19 scored
+submissions ($r=0.93$), with the public test images about 8 points harder than our held-out split.
 \end{abstract}
 
 \section{Overview}
-The task is to classify $32\times32$ RGB images into ten classes with a convolutional network that has skip
-connections and at most 5,000,000 trainable parameters, trained from scratch on the 50,000 official training
-images. No pretrained weights or external data are allowed. Kaggle scores predictions on 2,000 hidden test
-images drawn from ``a version of'' CIFAR-10 \cite{krizhevsky2009learning}. These are split 50/50 into a public
-leaderboard, visible during the competition, and a private leaderboard that decides the final ranking.
+The competition asks for a convolutional network with skip connections and at most 5,000,000 trainable parameters, trained
+from scratch on the 50,000 labeled $32{\times}32$ images provided with the competition, and scored on 2,000 hidden test
+images ``from a version of'' CIFAR-10 \cite{krizhevsky2009learning,kaggle2026competition}. Half of the test images form the
+public leaderboard that is visible during the competition; the other half decides the final ranking. No pretrained weights
+and no external data are allowed; the test images may only be used to write the submission file.
 
-Our findings in brief:
+We approached the problem in two phases. In the first phase, on a laptop GPU, we fixed the training recipe and compared
+ResNet-18 variants trimmed to the budget. In the second phase, on single A100 GPUs of NYU's high-performance computing
+cluster, we moved to a three-stage layout and spent about 50 GPU-hours on long schedules, knowledge distillation and
+sharpness-aware minimization, keeping two seeds for every setting that mattered. Our findings in brief:
 \begin{itemize}
-\item \textbf{Compute per parameter is cheap in the right places.} Most of ResNet-18's 11.2M parameters sit in its
-last stage, which runs at $4\times4$ resolution. Trimming only that stage keeps 82\% of ResNet-18's compute within
-our budget. On the Apple GPU we trained on, the final network ran at 0.72$\times$ the throughput of a uniformly
-narrowed ResNet-18 with 1.9$\times$ its multiply-accumulates.
-\item \textbf{Strong regularization changes the training dynamics.} With the improved recipe, training accuracy
-on augmented batches ends at only 87.7\% even though the model is larger, while held-out accuracy reaches
-96.0--96.4\%. The baseline, by contrast, fits its training batches almost perfectly (99.9\%) and stops at 94.5\%.
-\item \textbf{Held-out validation overstates hidden-test accuracy here.} The validation split is drawn from the
-training distribution; the hidden test set appears not to be.
+\item \textbf{Schedule length was the largest lever.} With the recipe fixed, the same 4.33M-parameter network reaches
+96.72\% held-out accuracy after 100 epochs, 97.34\% after 400 (mean of two seeds) and 97.58\% after 1,800. Training for
+2,300 or 3,000 epochs did not help (97.53\% and 97.49\%).
+\item \textbf{Within the budget, the residual layout mattered less than the recipe.} Four layouts spanning 3.5--4.8M
+parameters and 450--960M multiply-accumulates land within 0.1\pp\ of each other at matched schedule length. Moving from a
+trimmed ResNet-18 to the wide ResNet-20 layout mainly trades parameters for compute at $8{\times}8$ resolution.
+\item \textbf{Distillation and sharpness-aware minimization gave small, cost-dependent gains.} At equal student compute,
+distillation from two of our own networks adds about 0.1\pp\ (five held-out images) over plain training; the gain
+disappears once the teachers' training time is counted. Students stayed below their teachers' averaged prediction (97.84\%).
+\item \textbf{Held-out accuracy predicts the leaderboard up to sampling noise.} One public-leaderboard image is worth
+0.1\pp, so the seven submissions between 89.3\% and 90.1\% differ by at most eight images. We therefore kept Kaggle's
+default selection, our two highest public scores, which also happen to come from the two training families.
 \end{itemize}
 
 \section{Data and Evaluation Protocol}
-We split the 50,000 labeled images once, stratified by class with seed 2026, into 45,000 training and 5,000
-validation images (500 per class). We checked that no pixel-identical image crosses the split. Per-channel
-normalization statistics are computed on the 45,000 training images only. Every model selection decision below
-uses this fixed validation split. The hidden test images are used only to write the submission file; their
-labels are unavailable to us, and we never adapt to the test images, for example by re-estimating
-batch-normalization statistics or pseudo-labeling.
+We split the 50,000 labeled images once, stratified by class with seed 2026, into 45,000 training and 5,000 validation
+images (500 per class), and checked that no pixel-identical image crosses the split. Per-channel normalization statistics
+are computed on the 45,000 training images only. Every model-selection decision in this report uses this fixed validation
+split, which we call the held-out split; the models we submitted never trained on it. The hidden test images are read once,
+to write the submission file; we do not adapt batch-normalization statistics to them, pseudo-label them or look at them.
 
-Validation accuracy on 5,000 images has a standard error of about 0.27 percentage points at 96\% accuracy. The
-1,000-image public leaderboard has a standard error of about 1.1 points at 86\%, so small public-score
-differences are not meaningful.
+Unless stated otherwise, accuracies are those of the final checkpoint (not the best intermediate epoch, following
+\citeauthor{wightman2021resnet}~\citeyear{wightman2021resnet}), of the exponential-moving-average weights, with
+horizontal-flip test-time augmentation. A single accuracy at 97.6\% on 5,000 images has a binomial standard error (SE) of
+0.22\pp; an accuracy at 89\% on the 1,000 public images has an SE of 0.99\pp. Where we trained two seeds we report both
+and their mean. We did not run enough seeds for confidence intervals, so we flag differences below one SE as such rather
+than reading them as effects. This caution has a measured basis: over 10,000 training runs of one CIFAR-10 configuration,
+\citeauthor{jordan2024cifar}~(\citeyear{jordan2024cifar}) found the run-to-run standard deviation of accuracy on the fixed
+test set (0.16\pp) to be four times the standard deviation of the models' true expected accuracy (0.04\pp), so most of
+the spread between seeds measured on one evaluation set is not a difference in generalization.
 
-\section{Methodology}
-\subsection{Residual architecture}
-Every network we considered is built from the residual block described in the assignment,
-\begin{equation}
-y = \mathrm{ReLU}\big(S(x) + \mathrm{BN}(\mathrm{conv}(\mathrm{ReLU}(\mathrm{BN}(\mathrm{conv}(x)))))\big),
-\end{equation}
-with $3\times3$ convolutions, where $S$ is the identity, or a $1\times1$ convolution with batch normalization
-\cite{ioffe2015batch} when the resolution or width changes \cite{he2016deep}. A $3\times3$ stem replaces the
-ImageNet $7\times7$ stem and max-pool, following the CIFAR adaptation in the instructor-recommended
-reference code \cite{kuangliu}. Each network ends with global average pooling and one linear layer.
-Table~\ref{tab:archs} lists the candidates.
+\section{Network}
+Every network is built from the residual block of the assignment,
+\begin{align}
+y &= \mathrm{ReLU}\big(S(x)+F(x)\big), \nonumber\\
+F(x) &= \mathrm{BN}\big(\mathrm{conv}(\mathrm{ReLU}(\mathrm{BN}(\mathrm{conv}(x))))\big),
+\end{align}
+with $3{\times}3$ convolutions, where $S$ is the identity, or a $1{\times}1$ convolution with batch normalization \cite{ioffe2015batch} in the first block
+of a stage, where the resolution halves and the width changes \cite{he2016deep}. A $3{\times}3$ stem replaces the ImageNet
+$7{\times}7$ stem and max-pool, as in the CIFAR adaptation of the instructor-recommended reference code
+\cite{kuangliu}; global average pooling and one linear layer end the network. Table~\ref{tab:archs} lists the layouts we
+trained and Figure~\ref{fig:pipeline} shows the final one together with the training pipeline.
 
 \begin{table}[t]
 \centering
 \footnotesize
-\setlength{\tabcolsep}{3.6pt}
-\begin{tabular}{@{}lccrr@{}}
+\setlength{\tabcolsep}{2.9pt}
+\begin{tabular}{@{}llcrrr@{}}
 \toprule
-Name & Widths & Blocks & Params & MACs \\
+Name & Widths & Blocks & Params & MACs & s/ep. \\
 \midrule
-ResNet-18 (reference) & 64--512 & 2,2,2,2 & 11.17M & 555M \\
-\texttt{resnet18-w32} (baseline) & 32--256 & 2,2,2,2 & 2.80M & 139M \\
-\texttt{resnet18-w42} & 42--336 & 2,2,2,2 & 4.82M & 240M \\
-\texttt{resnet18-64-352} (final) & 64--352 & 2,2,2,1 & 4.80M & 453M \\
-\texttt{resnet20-x4} & 64--256 & 3,3,3 & 4.33M & 648M \\
+ResNet-18 (ref.) & 64--512 & 2,2,2,2 & 11.17M & 555M & -- \\
+\texttt{r18-w32} & 32--256 & 2,2,2,2 & 2.80M & 139M & -- \\
+\texttt{r18-64-352} & 64,128,256,352 & 2,2,2,1 & 4.80M & 453M & 3.5 \\
+\texttt{r20-x4} (final) & 64,128,256 & 3,3,3 & 4.33M & 648M & 4.0 \\
+\texttt{r20-w68} & 68,136,272 & 3,3,3 & 4.88M & 731M & 5.1 \\
+\texttt{highres} & 96,160,224 & 3,3,2 & 3.53M & 956M & 5.2 \\
+\texttt{preact} & 96,160,224 & 3,3,2 & 3.53M & 956M & 5.1 \\
 \bottomrule
 \end{tabular}
-\caption{Candidate residual networks: stage widths, residual blocks per stage, trainable parameters and
-multiply-accumulates (MACs) per $32\times32$ image. All parameters are counted, including batch normalization and
-the classifier.}
+\caption{Residual networks trained in this project: stage widths, blocks per stage, trainable parameters (all counted,
+including batch normalization and the classifier), multiply-accumulates per $32{\times}32$ image, and measured A100
+training time per epoch on 45,000 images with the final recipe (for \texttt{r20-w68}, scaled from its 50,000-image run).
+\texttt{preact} uses full pre-activation blocks \cite{he2016identity}; \texttt{r20-w68} was trained only on all 50,000
+images.}
 \label{tab:archs}
 \end{table}
 
-\paragraph{Design rationale.} In ResNet-18 the fourth stage holds most of the parameters but only a small share of
-the compute, because it runs on $4\times4$ feature maps. Shrinking every stage uniformly to fit the budget
-(\texttt{resnet18-w42}) also shrinks the high-resolution stages, which do most of the computation. Our final
-network, \texttt{resnet18-64-352}, keeps stages 1--3 of ResNet-18 at full width (64, 128 and 256 channels at
-$32\times32$, $16\times16$ and $8\times8$). Stage 4 becomes one 352-channel block. The parameters break down as:
-stem 1,856; stage 1 147,968; stage 2 525,568; stage 3 2,099,712; stage 4 2,018,368; classifier 3,530; total
-\textbf{4,797,002}. This leaves a 4\% margin under the limit while keeping 82\% of ResNet-18's MACs. We also
-defined a deeper three-stage alternative in the style of ResNet-20 and wide ResNets
-\cite{he2016deep,zagoruyko2016wide}, \texttt{resnet20-x4}; its 100-epoch run was paused after 35 epochs
-(Section~Results).
+\paragraph{Where the budget goes.} In ResNet-18, 8.4M of the 11.2M parameters sit in the fourth stage, which runs on
+$4{\times}4$ feature maps and contributes little compute. Our first budget-fitting layout, \texttt{r18-64-352}, keeps the
+first three ResNet-18 stages at full width and shrinks the fourth stage to one 352-channel block (4,797,002 parameters,
+82\% of ResNet-18's multiply-accumulates). The final layout, \texttt{r20-x4}, drops the $4{\times}4$ stage altogether: it is
+the three-stage CIFAR ResNet of \citeauthor{he2016deep} (\citeyear{he2016deep}, Sec.~4.2) with $n=3$ blocks per stage at
+four times the original 16--64 widths, in the spirit of wide residual networks \cite{zagoruyko2016wide}. Its 4,327,754
+parameters split into 1,856 (stem), 221,952 (stage 1, $32{\times}32$), 820,992 (stage 2, $16{\times}16$), 3,280,384
+(stage 3, $8{\times}8$) and 2,570 (classifier). Compared with \texttt{r18-64-352} it has 10\% fewer parameters and 43\%
+more multiply-accumulates, because its widest stage runs at $8{\times}8$ rather than $4{\times}4$. Two further layouts
+move capacity toward the high-resolution stages (\texttt{highres}) and add pre-activation (\texttt{preact}); a wider
+variant (\texttt{r20-w68}) uses 98\% of the budget. Section~\ref{sec:screening} reports that all of them land within noise
+of each other, which is why we spent the compute on the schedule instead.
 
-\subsection{Training recipes}
-Both recipes use SGD with Nesterov momentum 0.9, weight decay $5\times10^{-4}$, cross-entropy, a linear warmup over
-5 epochs followed by cosine decay \cite{loshchilov2017sgdr}, and the same split and seed (Table~\ref{tab:recipes}).
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/pipeline.pdf}
+\caption{The final pipeline. (a) Data and per-step augmentation. (b) The \texttt{r20-x4} network: a $3{\times}3$ stem and
+three stages of three residual blocks at 64, 128 and 256 channels, followed by global average pooling and a linear layer.
+(c) The training objective: cross-entropy with label smoothing, optionally combined with the distillation loss (KD models)
+or with the two-pass sharpness-aware update (SAM models). (d) Inference uses the EMA weights and averages the logits of the
+image and its mirror image.}
+\label{fig:pipeline}
+\end{figure*}
+
+\section{Training Recipe}
+\label{sec:recipe}
+Table~\ref{tab:recipes} summarizes the baseline we started from and the final recipe; the ingredients were added in the
+order of Table~\ref{tab:progression}.
 
 \begin{table}[t]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lll@{}}
 \toprule
-Setting & Baseline & Improved \\
+Setting & Baseline & Final \\
 \midrule
+Optimizer & SGD, Nesterov 0.9 & same \\
 Batch size, peak LR & 128, 0.1 & 256, 0.2 \\
-LR updates & per epoch & per step \\
-Weight decay on BN/bias & yes & no \\
-Crop padding & zeros, 4 px & reflect, 4 px \\
-Policy augmentation & none & TrivialAugmentWide \\
-Cutout & none & $16\times16$ \\
+Schedule & 5-ep.\ warm-up, cosine & same, per step \\
+Epochs & 100 & 1,000--1,800 \\
+Weight decay $5{\times}10^{-4}$ & all weights & not BN/bias \\
+Crop padding & zeros, 4\,px & reflect, 4\,px \\
+Policy augmentation & none & TrivialAugment \\
+Cutout & none & $16{\times}16$ \\
 Label smoothing & 0 & 0.1 \\
 Weight EMA (per step) & none & 0.999 \\
-Test-time augmentation & none & horizontal flip \\
+Test-time aug. & none & horizontal flip \\
 Precision & fp32 & bf16 autocast \\
 \bottomrule
 \end{tabular}
-\caption{Training recipes. Both use random crops and horizontal flips, 100 epochs and seed 2026.}
+\caption{Training recipes. Both use random crops and horizontal flips. The KD and SAM models add the terms of
+Sections~\ref{sec:kd} and \ref{sec:sam} to the final recipe.}
 \label{tab:recipes}
 \end{table}
 
-The improved recipe adds standard regularizers for small-image classification:
-\begin{itemize}
-\item TrivialAugmentWide \cite{muller2021trivialaugment}, which applies one randomly chosen image operation at a
-random strength;
-\item Cutout \cite{devries2017improved}, which erases a random square after normalization;
-\item label smoothing \cite{szegedy2016rethinking};
-\item an exponential moving average (decay 0.999) of the weights and batch-normalization statistics, an
-exponentially weighted variant of iterate averaging \cite{polyak1992acceleration}, used for evaluation;
-\item averaging the logits of each image and its mirror image at test time.
-\end{itemize}
-Weight decay is restricted to convolution and linear weights. The batch size and learning rate double together.
+\paragraph{Optimization.} We use SGD with Nesterov momentum 0.9 \cite{sutskever2013importance}, batch 256, a peak learning
+rate of 0.2 reached after a five-epoch linear warm-up, and a single cosine decay to zero over the whole run
+\cite{loshchilov2017sgdr}, updated every step. Weight decay $5{\times}10^{-4}$ is applied to convolution and linear weights
+only; the ``no bias decay'' and warm-up heuristics follow \citeauthor{he2019bag}~(\citeyear{he2019bag}). Training runs in
+bfloat16 autocast \cite{micikevicius2018mixed} with fp32 weights and optimizer state.
 
-\subsection{Implementation}
-We trained on an Apple M5 Pro laptop (20-core GPU, 48~GB unified memory) with PyTorch 2.15 on the Metal (MPS)
-backend. Random crops, flips and Cutout run batched on the GPU; TrivialAugment runs per image in six CPU
-data-loader workers. Mixed precision \cite{micikevicius2018mixed} with bfloat16 autocast keeps weights and
-optimizer state in fp32. Each run records its full configuration, source-file hashes and per-epoch metrics, and
-saves checkpoints with model, EMA, optimizer and random-number-generator states, so training can resume from any
-epoch; the 100-epoch baseline continued from its 5-epoch pilot checkpoint. A test suite covers the parameter
-budget, augmentation geometry, the learning-rate schedule, EMA, test-time augmentation, split isolation and the
-submission writer. We do not claim bitwise determinism across devices.
+\paragraph{Augmentation and regularization.} Each training image passes through TrivialAugmentWide
+\cite{muller2021trivialaugment}, which applies one randomly chosen operation at a uniformly random strength and needs no
+tuning, then through a random $32{\times}32$ crop of the reflection-padded image and a horizontal flip, and finally a
+$16{\times}16$ Cutout square \cite{devries2017improved}, applied after normalization as in the TrivialAugment CIFAR
+pipeline. The classification loss is cross-entropy with label smoothing $\epsilon=0.1$ \cite{szegedy2016rethinking}. We
+keep an exponential moving average (decay 0.999 per step) of all weights and batch-normalization statistics, a variant of
+iterate averaging \cite{polyak1992acceleration}, and evaluate and submit the averaged weights. At test time we average the
+logits of each image and its mirror image. We also tried Mixup and CutMix \cite{zhang2018mixup,yun2019cutmix} and random
+convolutions \cite{xu2021randconv} on top of this recipe at 100 and 200 epochs; both lowered held-out accuracy
+(by 0.2--0.5\pp\ for Mixup/CutMix and 0.5--0.8\pp\ for random convolutions) and were dropped.
+
+\subsection{Knowledge distillation}
+\label{sec:kd}
+The KD models minimize $0.1\,\mathcal{L}_{\mathrm{CE}}+0.9\,T^{2}\,\mathrm{KL}\big(\bar{p}_{T}\,\|\,q_{T}\big)$ with
+temperature $T=4$, where $q_T$ is the student's softened distribution and $\bar{p}_T$ the average of the frozen teachers'
+softened distributions, the $T^2$ factor keeping the gradient scale independent of $T$ \cite{hinton2015distilling}.
+Teacher and student see the same augmented view of each image, the ``consistent teaching'' of
+\citeauthor{beyer2022knowledge}~(\citeyear{beyer2022knowledge}). All teachers are our own networks trained from scratch on
+the same 45,000 images, so a distilled student can still be scored on the held-out split; the training code refuses a
+teacher whose checkpoint records a different split. The KD2 models use two teachers, the plain-recipe \texttt{r20-x4}
+trained for 1,000 epochs (seed 2026) and for 800 epochs (seed 2027); their averaged prediction scores 97.84\% on the held-out
+split. The KD5 models add three more (1,600 and 400-epoch \texttt{r20-x4} and the 800-epoch \texttt{r18-64-352};
+ensemble 97.96\%). Teacher inference raises the step time by 28\% (KD2) and 73\% (KD5).
+
+\subsection{Sharpness-aware minimization}
+\label{sec:sam}
+The SAM models apply the update of \citeauthor{foret2021sharpness}~(\citeyear{foret2021sharpness}) with the recommended
+$\rho=0.05$: each step first computes the gradient $g$ of the batch loss, moves the weights to $w+\rho\,g/\|g\|_2$, computes
+the gradient there and applies it at $w$. Batch-normalization statistics are updated in the first pass only, and the EMA
+tracks the base weights $w$. Weight decay stays in the SGD update. One SAM epoch costs 1.6 times a plain epoch (6.4 versus
+4.0 seconds on the A100).
+
+\subsection{Implementation and compute}
+A single Python training script covers all recipes; each run records its full configuration, the hashes of its source
+files, per-epoch metrics and checkpoints that hold model, EMA, optimizer and random-number-generator states, so a run can
+be resumed exactly. Prototyping ran on an Apple M5 Pro laptop (20-core GPU, 48\,GB unified memory, PyTorch MPS backend,
+about 17 GPU-hours in total). The long runs used NYU HPC's cloud-bursting A100 nodes through PyTorch 2.11 and CUDA, one GPU
+per job; because jobs are limited to two hours, every run was split into segments chained by scheduler dependencies and
+resumed from its last checkpoint. Random crops, flips and Cutout run batched on the GPU; TrivialAugment runs per image in
+six data-loader workers. Every retrieved checkpoint was re-evaluated on the held-out split on the laptop before it was
+considered, and every submission file was checked independently for row count, identifier order and label range. About 50
+A100-hours of training steps went into the runs reported below.
 
 \section{Results}
-\subsection{Held-out validation}
-Table~\ref{tab:results} compares the two runs, which differ in both architecture and recipe, at the same
-100-epoch budget; Figure~\ref{fig:curves} shows the curves. The improved model reaches 96.02\% with EMA weights and
-96.42\% with flip test-time augmentation, 1.94 points above the baseline's 94.48\%. Selecting the best epoch on the
-validation set instead of the last would give a slightly optimistic 94.60\% for the baseline; we report last-epoch
-values throughout.
+\subsection{From the baseline to the final recipe}
+Table~\ref{tab:progression} traces the path from the course baseline to the two submitted models, in the order in which the
+changes were made. The first phase changed the recipe and the layout at 100 epochs; the second phase kept the recipe fixed
+and lengthened the schedule. Public scores are shown where a submission was uploaded.
 
 \begin{table}[t]
 \centering
-\small
-\begin{tabular}{@{}lcccc@{}}
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{@{}llrrcc@{}}
 \toprule
-Run (100 epochs) & Params & Raw & EMA & EMA+flip \\
+Model & Change & Params & Ep. & Held-out & Public \\
 \midrule
-Baseline & 2.80M & 94.48 & -- & -- \\
-Improved & 4.80M & 95.90 & 96.02 & \textbf{96.42} \\
+\texttt{r18-w32} & baseline recipe & 2.80M & 100 & 94.84 & 83.8 \\
+\texttt{r18-w32} & + final recipe & 2.80M & 100 & 94.72 & 85.0 \\
+\texttt{r18-64-352} & + wide stages 1--3 & 4.80M & 100 & 96.42 & 86.3 \\
+\texttt{r20-x4} & + three-stage layout & 4.33M & 100 & 96.72 & 86.6 \\
+\texttt{r20-x4} & + 400 epochs & 4.33M & 400 & 97.28 & -- \\
+\texttt{r20-x4} & + 1,000 epochs (A100) & 4.33M & 1000 & 97.54 & 89.5 \\
+\texttt{r20-x4} & + 1,800 epochs & 4.33M & 1800 & 97.66 & 88.6 \\
+\texttt{r20-x4} & + KD, two teachers & 4.33M & 1800 & 97.62 & \textbf{90.1} \\
+\texttt{r20-x4} & SAM instead of KD & 4.33M & 1800 & 97.58 & \textbf{90.0} \\
 \bottomrule
 \end{tabular}
-\caption{Last-epoch accuracy (\%) on the 5,000 held-out validation images.}
-\label{tab:results}
+\caption{Cumulative changes from the baseline to the submitted models (seed 2026 throughout). Held-out accuracy (\%)
+is on the fixed 5,000-image split (EMA weights with flip TTA from the second row on; the baseline is the raw weights with
+flip TTA). Public accuracy (\%) is Kaggle's score on 1,000 hidden test images. The last two rows are the two final
+submissions.}
+\label{tab:progression}
 \end{table}
+
+The recipe change alone did not help the half-width ResNet-18 at 100 epochs (94.84\% to 94.72\%), but it changed the
+training dynamics: training-batch accuracy fell from 99.9\% to 84.8\% while held-out accuracy stayed, the signature of a
+network that is now capacity-limited rather than overfitted. Spending the budget on full-width early stages gave the largest
+single step (+1.7\pp), the three-stage layout another +0.3\pp\ at 100 epochs, and the schedule the rest.
+
+\subsection{Schedule length and cost}
+\label{sec:schedule}
+Figure~\ref{fig:schedule}a plots the held-out accuracy of every completed run against its schedule length, and
+Table~\ref{tab:long} lists the long runs with both seeds and their measured cost. With the plain recipe, the mean rises
+from 97.34\% at 400 epochs (two seeds) to 97.40\% at 800, 97.58\% at 1,000 (two runs of seed 2026) and 97.58\% at 1,800
+(two seeds), then stays flat or drifts down (97.53\% at 2,300, 97.49\% at 3,000). Training-batch accuracy keeps rising with the schedule (93.8\% at 1,800 epochs,
+94.4\% at 3,000), so the longest runs fit the augmented training set better without generalizing better; the recipe's
+regularization, tuned at 100--400 epochs, is probably too weak for 3,000, consistent with the observation of
+\citeauthor{wightman2021resnet} that regularization has to grow with the schedule. We did not retune it.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.82\textwidth]{figures/curves.pdf}
-\caption{Left: held-out validation accuracy. EMA weights lead the raw weights while the learning rate is high.
-Right: accuracy on augmented training batches. The improved recipe leaves a large gap between training and
-validation accuracy, a sign of strong regularization rather than overfitting.}
+\includegraphics[width=\textwidth]{figures/schedule.pdf}
+\caption{(a) Held-out accuracy of every completed run against the length of its cosine schedule; two seeds appear as two
+markers, and the line joins the per-length means of the plain recipe on the A100. (b) Held-out accuracy against measured
+A100 training-step hours for the long runs; for the distilled models, the hollow marker adds the time spent training their
+teachers. The bar in (a) shows one standard error of a 5,000-image accuracy.}
+\label{fig:schedule}
+\end{figure*}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lrcccrc@{}}
+\toprule
+Recipe & Ep. & s2026 & s2027 & Mean & A100\,h & Public \\
+\midrule
+CE (plain) & 1000 & 97.54 & -- & -- & 1.03 & 89.5 \\
+CE, control & 1000 & 97.62 & -- & -- & 1.11 & 88.5 \\
+CE & 1800 & 97.66 & 97.50 & 97.58 & 1.98 & 88.6 \\
+CE & 2300 & 97.52 & 97.54 & 97.53 & 2.53 & 88.6 \\
+CE & 3000 & 97.52 & 97.46 & 97.49 & 3.31 & -- \\
+AutoAugment & 1800 & 97.36 & 97.52 & 97.44 & 2.17 & -- \\
+KD2 & 1800 & \textbf{97.62} & 97.66 & 97.64 & 2.50{+}1.87 & 90.1/89.7 \\
+KD5 & 1800 & 97.64 & 97.66 & 97.65 & 3.39{+}4.29 & 89.7/88.8 \\
+SAM & 1000 & 97.72 & -- & -- & 1.77 & 89.3 \\
+SAM & 1800 & \textbf{97.58} & -- & -- & 3.20 & 90.0 \\
+\bottomrule
+\end{tabular}
+\caption{Long runs of \texttt{r20-x4}: held-out accuracy (\%) per seed, measured A100 training-step hours per run (after
+the plus sign: additional A100 hours spent training the teachers; one KD5 teacher was trained on the laptop), and public
+score (\%) where uploaded (seed 2026/seed 2027).
+``Control'' is a second 1,000-epoch run with a later code revision that seeds the augmentation policy per epoch; it differs
+from the first only in random numbers. The SAM second seed was cancelled by the scheduler before producing a log and was not
+rerun. Bold marks the submitted models.}
+\label{tab:long}
+\end{table}
+
+\paragraph{Distillation at matched cost.} The 2,300- and 3,000-epoch plain runs were sized so that their training time
+matches the KD2 and KD5 students (2.5 and 3.4 A100-hours). At equal student compute, distillation is ahead by 0.11\pp\ (KD2
+versus CE 2,300) and 0.16\pp\ (KD5 versus CE 3,000), five to eight held-out images, i.e.\ below one standard error. Counting
+the teachers' training time (Figure~\ref{fig:schedule}b) reverses the comparison. The students also stay 0.2--0.3\pp\ below
+the averaged prediction of their teachers, which the 1,800-epoch schedule is too short to reach:
+\citeauthor{beyer2022knowledge} needed thousands of epochs on datasets of this size before students matched their teacher.
+
+\paragraph{Sharpness-aware minimization.} SAM at 1,000 epochs gave the best single held-out number of the project
+(97.72\%), 0.1--0.2\pp\ above the two plain 1,000-epoch runs, and at the cost of a 1,800-epoch plain run (1.8 versus 2.0
+hours) it is 0.14\pp\ above the plain mean. The 1,800-epoch SAM run did not continue the trend (97.58\%, seven images
+below the 1,000-epoch run). With one seed per setting we read SAM as roughly cost-neutral at this accuracy, far from the
+0.6--1.1\pp\ gains \citeauthor{foret2021sharpness} report for a WRN-28-10 trained for 1,800 epochs with weaker augmentation.
+
+\subsection{Augmentation and layout screening}
+\label{sec:screening}
+Table~\ref{tab:screening} reports the paired 400-epoch screening on which the long runs were based. TrivialAugment and
+AutoAugment \cite{cubuk2019autoaugment} tie within one held-out image per seed; RandAugment \cite{cubuk2020randaugment} with
+two operations at magnitude 9 is 0.36\pp\ behind and 14\% slower. At 1,800 epochs AutoAugment fell 0.14\pp\ behind
+TrivialAugment (Table~\ref{tab:long}). The two alternative layouts, which spend the budget at $32{\times}32$ and
+$16{\times}16$ resolution with 18\% fewer parameters and 48\% more multiply-accumulates, match \texttt{r20-x4} within
+0.03\pp\ in the two-seed mean while costing 30\% more time per epoch. The trimmed ResNet-18 trained for 800 epochs
+(97.40\%) likewise falls between the two 800-epoch \texttt{r20-x4} seeds (97.30\%, 97.50\%). We therefore kept the layout
+chosen at 100 epochs, where it had led by 0.3\pp; that early lead did not survive longer training, and we do not claim it as
+an effect.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llcccr@{}}
+\toprule
+Factor & Setting & s2026 & s2027 & Mean & s/ep. \\
+\midrule
+Augment. & TrivialAugment & 97.36 & 97.32 & 97.34 & 3.97 \\
+ & AutoAugment & 97.28 & 97.44 & 97.36 & 4.35 \\
+ & RandAugment (2, 9) & 97.02 & 96.94 & 96.98 & 4.54 \\
+\midrule
+Layout & \texttt{r20-x4} & 97.36 & 97.32 & 97.34 & 3.97 \\
+ & \texttt{highres} & 97.34 & 97.30 & 97.32 & 5.2 \\
+ & \texttt{preact} & 97.40 & 97.34 & 97.37 & 5.1 \\
+\bottomrule
+\end{tabular}
+\caption{Paired 400-epoch screening (held-out accuracy, \%, final recipe otherwise). The layout rows use TrivialAugment.
+Each pair differs from \texttt{r20-x4} with TrivialAugment by at most two held-out images per seed, except RandAugment.}
+\label{tab:screening}
+\end{table}
+
+\subsection{Training dynamics}
+Figure~\ref{fig:curves} shows the held-out accuracy of the plain, KD2 and SAM runs (seed 2026) over their 1,800 epochs.
+The three curves are indistinguishable for the first 1,500 epochs and all gain about half a point in the last 300, as the
+learning rate decays to zero and the EMA weights settle; the KD and SAM terms neither accelerate nor slow this. Accuracy on
+the augmented training batches ends at 93--94\%, four points below the held-out accuracy, and the KD and SAM runs fit the
+training batches slightly less well than the plain run. The strong augmentation therefore remains the dominant regularizer
+to the end, in contrast to the clean-training-error curves of \citeauthor{he2016deep}, where training error falls to zero.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/curves.pdf}
+\caption{Training curves of the three 1,800-epoch seed-2026 runs. (a) Held-out accuracy of the EMA weights with flip TTA,
+evaluated every ten epochs. (b) The same for the last 800 epochs. (c) Accuracy on the augmented training batches, which
+stays well below the held-out accuracy throughout.}
 \label{fig:curves}
 \end{figure*}
 
-\paragraph{Architecture at matched epochs (partial).} With the improved recipe and the same seed,
-\texttt{resnet20-x4} reached 91.38\% EMA validation accuracy at epoch 35 of 100 (85.46\% raw), against 91.08\%
-(85.30\%) for \texttt{resnet18-64-352} at the same epoch. The run was then paused. The difference is within the
-sampling error of the validation set for a single seed, and mid-schedule accuracy need not predict the final
-ranking, so we draw no conclusion between the two architectures.
-
-\paragraph{Where the gains come from.} The improvement is broad: every class improves
-(Figure~\ref{fig:perclass}). The largest gain is for cat (87.8\% to 92.8\%), the hardest class. Cat and dog
-confusions still dominate the remaining errors (21 cats predicted as dog and 20 dogs as cat out of 500 each),
-followed by birds predicted as airplanes or cats.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.82\textwidth]{figures/per_class.pdf}
-\caption{Left: per-class held-out accuracy of the baseline and of the final model (EMA weights, flip TTA). Right:
-off-diagonal confusion counts of the final model; cells with at least 8 errors are labeled.}
-\label{fig:perclass}
-\end{figure*}
-
-\subsection{Cost}
-Wall-clock training time was 0.29~h for the baseline and 0.54~h for the improved run. The improved run trains at
-about 2,575 images/s, compared with 4,531 for the fp32 baseline at batch 128. Process memory stayed below 0.8~GB
-in both runs; sampled GPU driver allocation peaked at 3.4~GB. A short benchmark (Figure~\ref{fig:speed}) shows
-bf16 autocast running 1.6--2.4$\times$ faster than fp32 on this GPU, and the final network at 0.72$\times$ the
-throughput of \texttt{resnet18-w42} despite 1.9$\times$ its compute, which made the full-width early stages
-affordable.
+\subsection{Hidden test set}
+\label{sec:test}
+We uploaded 21 submissions over the competition (Table~\ref{tab:final} lists the final ones). Figure~\ref{fig:scatter} plots
+the public score of the 19 submissions that have a held-out score against that score. The two agree up to sampling noise:
+a least-squares fit gives $\mathrm{acc}_{\mathrm{public}}=1.73\,\mathrm{acc}_{\mathrm{held\text{-}out}}-80.2$ with
+correlation $r=0.93$, and every point lies within about one public-score standard error of the line. The slope is
+almost exactly the one \citeauthor{recht2019imagenet}~(\citeyear{recht2019imagenet}) measured between the original
+CIFAR-10 test set and their 2,000-image reproduction of it ($\mathrm{acc}_{\mathrm{new}}=1.69\,\mathrm{acc}_{\mathrm{orig}}-72.7$),
+but the intercept is 7.5 points lower: at 97.6\% their fit predicts 92.2\% on the new images, ours 88.6\% on the public
+set. Their best models lost 2.9--4.1\pp; ours lose about 8. The competition's hidden images, ``a version of'' CIFAR-10,
+therefore behave like a reproduction of the test set with a larger shift. A slope above one means that better held-out
+models lose less, so the ranking signal survives the shift. Two full-data runs (all 50,000 images, no held-out score) scored 88.8\% (KD2, seed 2027) and 89.7\%
+(\texttt{r20-w68}); neither beat the 45,000-image models on the public set, and without a held-out score we cannot tell
+whether they are better or worse.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/speed.pdf}
-\caption{Training throughput at batch 256 by precision (20-step benchmark, synchronized every step, with its own
-data loading; absolute values are below full-epoch throughput, so compare bars only relative to each other).}
-\label{fig:speed}
+\includegraphics[width=\columnwidth]{figures/scatter.pdf}
+\caption{Public-leaderboard accuracy against held-out accuracy for the 19 submissions with a held-out score. Error bars are
+one binomial standard error on each axis; the line is a least-squares fit. The two selected submissions are outlined.}
+\label{fig:scatter}
 \end{figure}
 
-\subsection{Hidden test set}
-We submitted the improved model's predictions (EMA weights, flip test-time augmentation). Kaggle reports a
-\textbf{public test accuracy of 86.30\%}; the private score is released after the competition closes. At
-submission time this ranked 7th on the public leaderboard, where the leading entry had 89.20\%.
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.8pt}
+\begin{tabular}{@{}llrcc@{}}
+\toprule
+Submission & Train & Params & Held-out & Public \\
+\midrule
+\texttt{r20-x4} KD2 1800 (final) & 45k & 4,327,754 & 97.62 & \textbf{90.1} \\
+\texttt{r20-x4} SAM 1800 (final) & 45k & 4,327,754 & 97.58 & \textbf{90.0} \\
+\texttt{r20-x4} KD5 1800 & 45k & 4,327,754 & 97.64 & 89.7 \\
+\texttt{r20-w68} plain 1800 & 50k & 4,884,926 & -- & 89.7 \\
+\texttt{r20-x4} plain 1000 & 45k & 4,327,754 & 97.54 & 89.5 \\
+\bottomrule
+\end{tabular}
+\caption{The two final submissions and the next three public scores. Held-out and public accuracy in \%. The private
+score of the two final submissions is released after the competition closes and is not available at the time of writing.}
+\label{tab:final}
+\end{table}
 
-The roughly 10-point gap between validation (96.42\%) and public test accuracy (86.30\%) is far larger than
-sampling error. Our validation images are a random subset of the official training distribution, while the test
-images come from ``a version of'' CIFAR-10. A careful reproduction of the CIFAR-10 test set produced accuracy drops
-of 3--15 percentage points across a broad range of models \cite{recht2019imagenet}, and every public leaderboard
-entry was below 90\% at the time. We therefore treat validation accuracy as a ranking signal, not an estimate of
-test accuracy, and keep selecting models on held-out validation rather than on leaderboard feedback.
+\paragraph{Final selection.} Kaggle scores a team on at most two selected submissions and selects the two highest public
+scores by default. Those are the KD2 and SAM models (90.1\% and 90.0\%), and we kept them: they are our two best public
+scores, they come from the two different training families, and they disagree on 65 of the 5,000 held-out images (at least
+one of the two is right on 98.2\%). We note that the seven submissions scoring 89.3--90.1\% differ by at most eight test
+images, so the private ranking among them is within noise. On the public leaderboard, as of November 6 at 16:33 UTC, our
+best score ranked 21st of 64 teams; the median team scored 89.4\% and the cut for the top 20\% was 90.8\%.
+
+\subsection{Error analysis}
+Figure~\ref{fig:confusion} shows the held-out confusion matrix of the KD2 model. Cat is the hardest class (93.6\%) and
+cat--dog confusions make up 33 of the 119 errors; the next largest groups are bird predicted as cat (8) or airplane (6)
+and automobile predicted as truck (6). Frog (99.6\%) and ship (99.2\%) are nearly solved. Relative to the 100-epoch
+\texttt{r18-64-352} of Table~\ref{tab:progression}, every class improved; cat gained the most (92.8\% to 93.6\%
+and, more visibly, 41 to 33 cat--dog errors).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\columnwidth]{figures/confusion.pdf}
+\caption{Held-out confusion matrix of the final KD2 model (EMA weights, flip TTA). Diagonal cells show per-class accuracy
+(\%); off-diagonal cells show error counts out of 500 images per class.}
+\label{fig:confusion}
+\end{figure}
 
 \section{Discussion}
-\paragraph{Architectural trade-offs.} Uniform narrowing is simple and keeps the ResNet-18 layout, but it gives up
-compute exactly where small images need it. Trimming only the last stage keeps the high-resolution stages intact at
-the cost of a much thinner final representation (one block instead of two). Deeper three-stage designs such as
-\texttt{resnet20-x4} add even more compute per parameter (648M vs.\ 453M MACs). On the MPS backend, theoretical
-MACs were a poor predictor of training time: \texttt{resnet18-64-352} ran at 0.72$\times$ the throughput of
-\texttt{resnet18-w42} with 1.9$\times$ its MACs. We did not run a controlled test of why, for example of channel
-alignment or kernel sizes, and did not benchmark \texttt{resnet20-x4} in isolation.
+\paragraph{Architectural choices.} Within a 5M budget on $32{\times}32$ images, the question is where to spend
+parameters: in a $4{\times}4$ stage (ResNet-18 style), in an $8{\times}8$ stage (\texttt{r20-x4}) or in the
+$32{\times}32$ and $16{\times}16$ stages (\texttt{highres}). The trade-off is parameters against compute: for the same
+budget, each step toward higher resolution raises multiply-accumulates (453M, 648M, 956M) and time per epoch (3.5, 4.0,
+5.2\,s) and lowers the parameter count that fits. In our runs the accuracy differences between these choices were at
+most 0.1--0.3\pp\ and vanished with longer training, so the practical criterion became speed: the fastest layout that
+reaches the plateau wins, because the schedule, not the layout, set the accuracy. Pre-activation blocks changed nothing at
+this depth, as expected for a 20-layer network \cite{he2016identity}. Uniformly narrowing ResNet-18 to fit the budget is
+the worst option, because it removes compute from the high-resolution stages where small images need it.
 
-\paragraph{Lessons learned.} (1) The 5-epoch pilot (77.6\%) said little about the final accuracy; full schedules
-were needed before comparing anything. (2) Strong augmentation lowers training accuracy sharply. That is expected,
-and EMA weights recover much of the noise of the raw weights during training. (3) Per-step learning-rate updates
-exposed a bug: an epoch-level warmup formula overshot the peak rate by 20\% when evaluated mid-epoch. We fixed it
-and reran from scratch. (4) Independently re-reading every submission file before upload caught a crash in the
-prediction audit for newer checkpoints before it could affect a submission.
+\paragraph{Lessons learned.}
+(1)~Train long, with one cosine cycle; comparisons at 100 epochs misranked our layouts, and every change we made after
+moving to long schedules was smaller than the gain from the schedule itself. (2)~Match regularization to the schedule:
+Mixup, CutMix and random convolutions hurt at 100--200 epochs, and at 3,000 epochs the plain recipe starts to overfit the
+augmented training set. (3)~Compare at measured cost, not at equal epochs: distillation and SAM cost 1.3--1.7 times a plain
+epoch, and at equal cost their gains shrink below one standard error. (4)~Two seeds and an explicit standard error saved us
+from chasing noise; the same 1,000-epoch recipe scored 89.5\% and 88.5\% on the public leaderboard with different random
+numbers. (5)~Engineering for a shared cluster matters: two-hour segments with exact resume, independent re-evaluation of
+every retrieved checkpoint and an audited submission writer let roughly fifty cluster jobs, several of them cancelled by the
+scheduler and resumed, produce results we could trust. (6)~Keep selection on the held-out split; the leaderboard was
+consulted only to choose between finalists that the held-out split could not separate.
 
-\paragraph{Limitations.} The comparison in Table~\ref{tab:results} changes the architecture and the recipe at
-the same time. A recipe-only ablation (the improved recipe on \texttt{resnet18-w32}) was planned but not run, and
-the \texttt{resnet20-x4} run was paused after 35 of 100 epochs, so we do not attribute the gain between
-architecture and recipe. All numbers come from a single seed. The public score is based on 1,000 images and a
-single submission. We cannot verify the cause of the validation--test gap without test labels, so distribution
-shift is our hypothesis rather than a finding. Two checks argue against, but do not rule out, a test-pipeline
-error: the predicted class counts are close to uniform (178--214 per class out of 2,000), and test images are
-normalized with the same training-set statistics as the validation images. A 200-epoch run of the final recipe on
-all 50,000 images was started but paused after 41 epochs; it has no held-out data, so we report no result from it.
-Longer and full-data training usually improves accuracy further.
+\paragraph{Limitations.} Most settings have one or two seeds, so effects below 0.2\pp\ are not resolved. The same
+5,000 held-out images were used for every comparison, which makes the reported held-out numbers slightly optimistic as
+estimates of accuracy on new images drawn from the training distribution. The recipe was tuned at 100--400 epochs and not
+retuned for the long runs. Distillation was not run long enough for the students to reach their teachers, and the SAM second
+seed was lost to a scheduler cancellation. Re-evaluating cloud checkpoints on the laptop differed from the cloud number by
+one held-out image in a few of about thirty checks (a numerical difference between the two backends that we did not trace),
+so we report the cloud numbers. The full-data models have no held-out score.
+Finally, the private-leaderboard scores of the two final submissions were not available when this report was written.
 
 \section{Conclusion}
-A residual network that keeps ResNet-18's high-resolution stages and trims its last stage fits the 5M-parameter
-budget at 4,797,002 parameters. Trained from scratch with standard modern regularization, it reaches 96.42\%
-held-out validation accuracy and 86.30\% public test accuracy on the competition's hidden set. Next steps are
-longer full-data training, running the controlled ablations, and teacher--student distillation from our own
-from-scratch models.
-
-% TODO for the author: add any AI-assistance statement the course requires, in your own words.
+A wide three-stage residual network with 4,327,754 parameters, trained from scratch for 1,800 epochs with
+TrivialAugment, Cutout, label smoothing and weight averaging, reaches 97.5--97.7\% on a held-out split of the competition's
+training images and 88.6--90.1\% on the public half of its hidden test set. Of everything we tried, schedule length was the
+only change worth more than one standard error; distillation from our own networks and sharpness-aware minimization produced
+our two best public scores but, at matched cost, only small gains. The code, configurations, per-epoch logs and checkpoints
+behind every number in this report are in the linked repository.
 
 \bibliographystyle{aaai}
 \bibliography{references}

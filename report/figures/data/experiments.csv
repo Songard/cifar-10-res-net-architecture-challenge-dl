@@ -1,0 +1,39 @@
+family,label,arch,epochs,seed,heldout,a100_hours,teacher_a100_hours,device,source
+plain,CE 100,resnet20-x4,100,2026,96.72,,,mps,runs/improved100-resnet20-x4
+plain,CE 400,resnet20-x4,400,2026,97.28,,,mps,runs/x4-400ep-45k
+plain,CE 400,resnet20-x4,400,2026,97.24,0.404,,a100,project1-hpc/runs/cloud-x4-400-s2026
+plain,TA 400,resnet20-x4,400,2026,97.36,0.430,,a100,project1-hpc round-2 screening (cloud-evidence/20261103-0840)
+plain,TA 400,resnet20-x4,400,2027,97.32,0.43,,a100,project1-hpc round-2 screening (cloud-evidence/20261103-0938)
+plain,CE 800,resnet20-x4,800,2026,97.30,0.822,,a100,project1-hpc/runs/cloud-x4-800-s2026
+plain,CE 800,resnet20-x4,800,2027,97.50,0.840,,a100,project1-hpc/runs/cloud-x4-800-s2027
+plain,CE 1000,resnet20-x4,1000,2026,97.54,1.030,,a100,project1-hpc/runs/cloud-x4-1000-s2026
+plain,CE 1000,resnet20-x4,1000,2026,97.62,1.112,,a100,project1-hpc/artifacts/candidates/ce-x4-1000-epochseed-s2026
+plain,CE 1600,resnet20-x4,1600,2026,97.48,1.632,,a100,project1-hpc/runs/cloud-x4-1600-s2026
+plain,CE 1800,resnet20-x4,1800,2026,97.66,1.964,,a100,project1-hpc/artifacts/candidates/r2-ta1800-s2026
+plain,CE 1800,resnet20-x4,1800,2027,97.50,2.00,,a100,project1-hpc round-2 (cloud-evidence/ta1800-20261103-1254)
+plain,CE 2300,resnet20-x4,2300,2026,97.52,2.536,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2026
+plain,CE 2300,resnet20-x4,2300,2027,97.54,2.526,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2027
+plain,CE 3000,resnet20-x4,3000,2026,97.52,3.316,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2026
+plain,CE 3000,resnet20-x4,3000,2027,97.46,3.302,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2027
+kd,KD 400,resnet20-x4,400,2026,97.40,,,a100,project1-hpc/artifacts/candidates/cloud-kd-x4-400-s2026
+kd,KD 800,resnet20-x4,800,2026,97.66,1.025,,a100,project1-hpc/runs/cloud-kd-x4-800-s2026 (teachers trained on the Mac)
+kd,KD 800,resnet20-x4,800,2027,97.18,1.055,,a100,project1-hpc/runs/cloud-kd-x4-800-s2027
+kd,KD2 1800,resnet20-x4,1800,2026,97.62,2.527,1.870,a100,project1-hpc/artifacts/candidates/r2-kd2-ta1800-s2026
+kd,KD2 1800,resnet20-x4,1800,2027,97.66,2.481,1.870,a100,project1-hpc/artifacts/candidates/r2-kd2-ta1800-s2027
+kd,KD5 1800,resnet20-x4,1800,2026,97.64,3.425,4.287,a100,project1-hpc/artifacts/candidates/r2-kd5-ta1800-s2026 (one teacher trained on the Mac)
+kd,KD5 1800,resnet20-x4,1800,2027,97.66,3.357,4.287,a100,project1-hpc/artifacts/candidates/r2-kd5-ta1800-s2027
+sam,SAM 1000,resnet20-x4,1000,2026,97.72,1.769,,a100,project1-hpc/artifacts/candidates/sam-x4-1000-s2026
+sam,SAM 1800,resnet20-x4,1800,2026,97.58,3.195,,a100,project1-hpc/artifacts/candidates/sam-x4-1800-s2026
+aug,AA 400,resnet20-x4,400,2026,97.28,,,a100,project1-hpc round-2 screening
+aug,AA 400,resnet20-x4,400,2027,97.44,,,a100,project1-hpc round-2 screening
+aug,RA 400,resnet20-x4,400,2026,97.02,0.504,,a100,project1-hpc round-2 screening
+aug,RA 400,resnet20-x4,400,2027,96.94,,,a100,project1-hpc round-2 screening
+aug,AA 1800,resnet20-x4,1800,2026,97.36,,,a100,project1-hpc round-2 (cloud-evidence/aa1800-20261103-1301)
+aug,AA 1800,resnet20-x4,1800,2027,97.52,2.174,,a100,project1-hpc/artifacts/candidates/r2-aa1800-s2027
+arch,R18 100,resnet18-64-352,100,2026,96.42,,,mps,runs/improved100-resnet18-64-352
+arch,R18 200,resnet18-64-352,200,2026,96.92,,,mps,runs/final-resnet18-64-352-45k
+arch,R18 800,resnet18-64-352,800,2026,97.40,0.784,,a100,project1-hpc/artifacts/candidates/cloud-r18-800-s2026
+arch,HighRes 400,resnet-highres,400,2026,97.34,,,a100,project1-hpc round-2 screening
+arch,HighRes 400,resnet-highres,400,2027,97.30,,,a100,project1-hpc round-2 screening
+arch,PreAct 400,preact-highres,400,2026,97.40,,,a100,project1-hpc round-2 screening
+arch,PreAct 400,preact-highres,400,2027,97.34,,,a100,project1-hpc round-2 screening

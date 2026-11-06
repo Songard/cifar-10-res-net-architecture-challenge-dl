@@ -1,0 +1,196 @@
+{
+ "written_local": "2026-10-30T10:11:03-0400",
+ "val": {
+  "baseline-100ep": 0.9484,
+  "improved100-resnet18-w32": 0.9472,
+  "improved100-resnet18-64-352": 0.9642,
+  "improved100-resnet20-x4": 0.9672,
+  "final-resnet18-64-352-45k": 0.9692,
+  "x4-400ep-45k": 0.9728,
+  "lab-r18-200ep-mix": 0.9674,
+  "lab-r18-200ep-randconv": 0.9638,
+  "lab-w32-mix": 0.9418,
+  "lab-w32-randconv": 0.9396
+ },
+ "fits": {
+  "own_6pt": {
+   "beta": [
+    0.06405302298375037,
+    0.581104575643631
+   ],
+   "cov": [
+    [
+     0.10502890811410229,
+     -0.059155827331164756
+    ],
+    [
+     -0.059155827331164756,
+     0.033449277930241876
+    ]
+   ]
+  },
+  "own_6pt_baseline_offset": {
+   "beta": [
+    0.24187292789512638,
+    0.48533819413555146,
+    -0.046476771577341425
+   ],
+   "cov": [
+    [
+     0.16714686604650716,
+     -0.09260996769199782,
+     -0.016235764736875716
+    ],
+    [
+     -0.09260996769199782,
+     0.05146628210317655,
+     0.008743905473582203
+    ],
+    [
+     -0.016235764736875716,
+     0.008743905473582203,
+     0.004243540279898118
+    ]
+   ]
+  }
+ },
+ "arms": [
+  {
+   "arm": "x4-400ep-45k",
+   "reference": "improved100-resnet20-x4",
+   "change": "schedule 100->400 epochs (slope anchor at the highest val)",
+   "val": 0.9728,
+   "ref_val": 0.9672,
+   "ref_public": 0.866,
+   "val_disagreement": 0.028,
+   "paired_pred": {
+    "own": 87.44570800064525,
+    "baek": 87.92072275670535
+   },
+   "abs_pred": {
+    "baek": 88.30463236887432,
+    "own": 88.01001967829576
+   },
+   "prediction_pct": 87.7,
+   "paired_sd_pp": [
+    0.75,
+    0.99
+   ],
+   "band_pp": 1.7
+  },
+  {
+   "arm": "lab-r18-200ep-mix",
+   "reference": "final-resnet18-64-352-45k",
+   "change": "Mixup/CutMix added (r18, 200 ep)",
+   "val": 0.9674,
+   "ref_val": 0.9692,
+   "ref_public": 0.882,
+   "val_disagreement": 0.0256,
+   "paired_pred": {
+    "own": 87.95569633580317,
+    "baek": 87.81178281981641
+   },
+   "abs_pred": {
+    "baek": 87.0572841088253,
+    "own": 87.21849539488072
+   },
+   "prediction_pct": 87.9,
+   "paired_sd_pp": [
+    0.72,
+    0.95
+   ],
+   "band_pp": 1.7
+  },
+  {
+   "arm": "lab-r18-200ep-randconv",
+   "reference": "final-resnet18-64-352-45k",
+   "change": "RandConv added (r18, 200 ep)",
+   "val": 0.9638,
+   "ref_val": 0.9692,
+   "ref_public": 0.882,
+   "val_disagreement": 0.0296,
+   "paired_pred": {
+    "own": 87.48916983927427,
+    "baek": 87.06166338186524
+   },
+   "abs_pred": {
+    "baek": 86.27558216847633,
+    "own": 86.73237048365583
+   },
+   "prediction_pct": 87.3,
+   "paired_sd_pp": [
+    0.77,
+    1.02
+   ],
+   "band_pp": 1.8
+  },
+  {
+   "arm": "lab-w32-mix",
+   "reference": "improved100-resnet18-w32",
+   "change": "Mixup/CutMix added (w32, 100 ep)",
+   "val": 0.9418,
+   "ref_val": 0.9472,
+   "ref_public": 0.85,
+   "val_disagreement": 0.0374,
+   "paired_pred": {
+    "own": 84.44765291458721,
+    "baek": 84.11985873756498
+   },
+   "abs_pred": {
+    "baek": 82.09024900370682,
+    "own": 84.22830772842083
+   },
+   "prediction_pct": 84.3,
+   "paired_sd_pp": [
+    0.86,
+    1.14
+   ],
+   "band_pp": 2.0
+  },
+  {
+   "arm": "lab-w32-randconv",
+   "reference": "improved100-resnet18-w32",
+   "change": "RandConv added (w32, 100 ep)",
+   "val": 0.9396,
+   "ref_val": 0.9472,
+   "ref_public": 0.85,
+   "val_disagreement": 0.0482,
+   "paired_pred": {
+    "own": 84.23060478042134,
+    "baek": 83.7707669885516
+   },
+   "abs_pred": {
+    "baek": 81.7133236521989,
+    "own": 84.00925832368728
+   },
+   "prediction_pct": 84.0,
+   "paired_sd_pp": [
+    0.98,
+    1.3
+   ],
+   "band_pp": 2.3
+  }
+ ],
+ "pooled": {
+  "mix": {
+   "arms": [
+    "lab-r18-200ep-mix",
+    "lab-w32-mix"
+   ],
+   "pooled_residual_sd_pp": [
+    0.56,
+    0.74
+   ]
+  },
+  "randconv": {
+   "arms": [
+    "lab-r18-200ep-randconv",
+    "lab-w32-randconv"
+   ],
+   "pooled_residual_sd_pp": [
+    0.62,
+    0.83
+   ]
+  }
+ }
+}
