@@ -1,0 +1,23 @@
+{
+  "arch": "resnet20-x4",
+  "epochs": 1800,
+  "batch_size": 256,
+  "lr": 0.2,
+  "weight_decay": 0.0005,
+  "bn_weight_decay": false,
+  "warmup_epochs": 5,
+  "lr_per_step": true,
+  "pipeline": "randaugment",
+  "ra_ops": 2,
+  "ra_magnitude": 9,
+  "epoch_seeded_policy": true,
+  "padding_mode": "reflect",
+  "cutout": 16,
+  "label_smoothing": 0.1,
+  "ema_decay": 0.999,
+  "amp": "bf16",
+  "channels_last": true,
+  "eval_every": 10,
+  "tta_every": 10,
+  "eval_raw": false
+}

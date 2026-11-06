@@ -98,7 +98,8 @@ class PipelineTests(unittest.TestCase):
         torch.testing.assert_close(y1, data.labels[data.valid[:16]])
 
     def test_registered_architectures_fit_budget_and_rebuild(self):
-        expected = {"resnet18-w32": 2797610, "resnet18-w42": 4815940, "resnet18-64-352": 4797002, "resnet20-x4": 4327754}
+        expected = {"resnet18-w32": 2797610, "resnet18-w42": 4815940, "resnet18-64-352": 4797002, "resnet20-x4": 4327754,
+                    "resnet20-w68": 4884926}
         for arch, count in expected.items():
             model = build_model(arch)
             self.assertEqual(parameter_count(model), count)
@@ -106,6 +107,20 @@ class PipelineTests(unittest.TestCase):
         self.assertLessEqual(set(expected), set(ARCHITECTURES))
         old = make_model({"width": 32})
         self.assertEqual(old.state_dict().keys(), build_model("resnet18-w32").state_dict().keys())
+
+    @unittest.skipUnless(Path("runs/hpc/r2-kd2-ta1800-s2026/config.json").exists(), "Needs the published cluster run records")
+    def test_published_final_runs_match_registry_and_consolidated_config(self):
+        """configs/final-1800.json must resolve to exactly the settings the three 1,800-epoch seed-2026 runs recorded."""
+        import json
+        final = json.loads(Path("configs/final-1800.json").read_text())
+        for run, extras in (("r2-kd2-ta1800-s2026", {"kd_alpha": 0.9, "kd_temperature": 4.0}),
+                            ("sam-x4-1800-s2026", {"sam_rho": 0.05}), ("r2-ta1800-s2026", {})):
+            recorded = json.loads(Path(f"runs/hpc/{run}/config.json").read_text())
+            self.assertEqual({k: recorded.get(k) for k in final}, final, run)
+            self.assertEqual({k: recorded.get(k) for k in extras}, extras, run)
+            self.assertEqual(recorded["parameter_count"], parameter_count(build_model(recorded["arch"])))
+        wide = json.loads(Path("runs/hpc/w68-full-s2026/config.json").read_text())
+        self.assertEqual((wide["arch"], wide["parameter_count"]), ("resnet20-w68", parameter_count(build_model("resnet20-w68"))))
 
     def test_reflect_crop_and_cutout(self):
         torch.manual_seed(3)
