@@ -1,35 +1,40 @@
 .venv/
-# data: only the audit and import receipt are published, never competition images or caches
-data/*
-!data/official_import_receipt.json
-!data/cache/
-data/cache/*
-!data/cache/audit.json
-# runs: per-epoch logs, settings and submission audits are published; checkpoints and predictions are not
-runs/**
-!runs/*/
-!runs/*/metrics.jsonl
-!runs/*/config.json
-!runs/*/submission.audit.json
 __pycache__/
 *.pyc
 .DS_Store
 .env
 *token*
-artifacts/submission*
-CLAUDE_HANDOFF*.md
-official/
-artifacts/download-diagnosis-*.json
 .ipynb_checkpoints/
-logs/*.out
-report/*.aux
-report/*.bbl
-report/*.blg
-report/*.log
-report/*.xdv
-report/main.pdf
+# data: only the split/normalization audit and the import receipt are published, never competition images, labels or caches
+data/*
+!data/official_import_receipt.json
+!data/cache/
+data/cache/*
+!data/cache/audit.json
+# runs: per-epoch logs, resolved settings and submission audits are published; checkpoints and prediction CSVs are not
+runs/**
+!runs/*/
+!runs/*/metrics.jsonl
+!runs/*/config.json
+!runs/*/submission.audit.json
+!runs/hpc/*/
+!runs/hpc/*/metrics.jsonl
+!runs/hpc/*/config.json
+!runs/hpc/*/submission.audit.json
+# artifacts: candidate deliveries (checkpoints, CSVs, cluster logs), prediction CSVs and exploratory analyses stay local
+artifacts/candidates/
+artifacts/failure-analysis/
+artifacts/submission*
+artifacts/download-diagnosis-*.json
 artifacts/registration-and-submission-audit-*.json
-# LaTeX build outputs and the local draft PDF
+artifacts/kaggle_submissions.lock
+artifacts/oof-data-*/
+# local console logs and queue scripts, the course handout, and hand-over notes between sessions
+logs/
+official/
+CLAUDE_HANDOFF*.md
+CODEX_HPC_HANDOFF*.md
+# LaTeX build outputs and the local draft PDF (the figure PDFs are kept)
 report/*.aux
 report/*.bbl
 report/*.blg
@@ -37,3 +42,6 @@ report/*.log
 report/*.xdv
 report/*.pdf
 !report/figures/*.pdf
+!runs/hpc/README.md
+checkpoints/
+predictions/
