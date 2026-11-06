@@ -55,7 +55,7 @@ with horizontal-flip test-time augmentation. On a fixed 5,000-image held-out spl
 forty completed runs, the length of the schedule was the largest single lever: 96.7\% at 100 epochs, 97.3\% at 400 and
 97.6\% at 1,800. Beyond that point, longer plain training (2,300 and 3,000 epochs), stronger augmentation policies, three
 alternative residual layouts, distillation and sharpness-aware minimization all moved the held-out accuracy by less than one
-standard error of the measurement (0.22 points). Held-out and public accuracy are strongly correlated across our 19 scored
+standard error of the measurement (0.22 points). Held-out and public accuracy are strongly correlated across our 18 scored
 submissions ($r=0.93$), with the public test images about 8 points harder than our held-out split.
 \end{abstract}
 
@@ -73,7 +73,7 @@ sharpness-aware minimization, keeping two seeds for every setting that mattered.
 \begin{itemize}
 \item \textbf{Schedule length was the largest lever.} With the recipe fixed, the same 4.33M-parameter network reaches
 96.72\% held-out accuracy after 100 epochs, 97.34\% after 400 (mean of two seeds) and 97.58\% after 1,800. Training for
-2,300 or 3,000 epochs did not help (97.53\% and 97.49\%).
+2,300 or 3,000 epochs did not help (97.52\% and 97.49\%).
 \item \textbf{Within the budget, the residual layout mattered less than the recipe.} Four layouts spanning 3.5--4.8M
 parameters and 450--960M multiply-accumulates land within 0.1\pp\ of each other at matched schedule length. Moving from a
 trimmed ResNet-18 to the wide ResNet-20 layout mainly trades parameters for compute at $8{\times}8$ resolution.
@@ -285,8 +285,8 @@ single step (+1.7\pp), the three-stage layout another +0.3\pp\ at 100 epochs, an
 \label{sec:schedule}
 Figure~\ref{fig:schedule}a plots the held-out accuracy of every completed run against its schedule length, and
 Table~\ref{tab:long} lists the long runs with both seeds and their measured cost. With the plain recipe, the mean rises
-from 97.34\% at 400 epochs (two seeds) to 97.40\% at 800, 97.58\% at 1,000 (two runs of seed 2026) and 97.58\% at 1,800
-(two seeds), then stays flat or drifts down (97.53\% at 2,300, 97.49\% at 3,000). Training-batch accuracy keeps rising with the schedule (93.8\% at 1,800 epochs,
+from 97.34\% at 400 epochs (two seeds) to 97.40\% at 800, 97.59\% at 1,000 (two runs of seed 2026) and 97.58\% at 1,800
+(two seeds), then stays flat or drifts down (97.52\% at 2,300, 97.49\% at 3,000). Training-batch accuracy keeps rising with the schedule (93.8\% at 1,800 epochs,
 94.4\% at 3,000), so the longest runs fit the augmented training set better without generalizing better; the recipe's
 regularization, tuned at 100--400 epochs, is probably too weak for 3,000, consistent with the observation of
 \citeauthor{wightman2021resnet} that regularization has to grow with the schedule. We did not retune it.
@@ -310,9 +310,9 @@ teachers. The bar in (a) shows one standard error of a 5,000-image accuracy.}
 Recipe & Ep. & s2026 & s2027 & Mean & A100\,h & Public \\
 \midrule
 CE (plain) & 1000 & 97.54 & -- & -- & 1.03 & 89.5 \\
-CE, control & 1000 & 97.62 & -- & -- & 1.11 & 88.5 \\
+CE, control & 1000 & 97.64 & -- & -- & 1.11 & 88.5 \\
 CE & 1800 & 97.66 & 97.50 & 97.58 & 1.98 & 88.6 \\
-CE & 2300 & 97.52 & 97.54 & 97.53 & 2.53 & 88.6 \\
+CE & 2300 & 97.52 & 97.52 & 97.52 & 2.53 & 88.6 \\
 CE & 3000 & 97.52 & 97.46 & 97.49 & 3.31 & -- \\
 AutoAugment & 1800 & 97.36 & 97.52 & 97.44 & 2.17 & -- \\
 KD2 & 1800 & \textbf{97.62} & 97.66 & 97.64 & 2.50{+}1.87 & 90.1/89.7 \\
@@ -331,8 +331,8 @@ rerun. Bold marks the submitted models.}
 \end{table}
 
 \paragraph{Distillation at matched cost.} The 2,300- and 3,000-epoch plain runs were sized so that their training time
-matches the KD2 and KD5 students (2.5 and 3.4 A100-hours). At equal student compute, distillation is ahead by 0.11\pp\ (KD2
-versus CE 2,300) and 0.16\pp\ (KD5 versus CE 3,000), five to eight held-out images, i.e.\ below one standard error. Counting
+matches the KD2 and KD5 students (2.5 and 3.4 A100-hours). At equal student compute, distillation is ahead by 0.12\pp\ (KD2
+versus CE 2,300) and 0.16\pp\ (KD5 versus CE 3,000), six to eight held-out images, i.e.\ below one standard error. Counting
 the teachers' training time (Figure~\ref{fig:schedule}b) reverses the comparison. The students also stay 0.2--0.3\pp\ below
 the averaged prediction of their teachers, which the 1,800-epoch schedule is too short to reach:
 \citeauthor{beyer2022knowledge} needed thousands of epochs on datasets of this size before students matched their teacher.
@@ -397,12 +397,12 @@ stays well below the held-out accuracy throughout.}
 \subsection{Hidden test set}
 \label{sec:test}
 We uploaded 21 submissions over the competition (Table~\ref{tab:final} lists the final ones). Figure~\ref{fig:scatter} plots
-the public score of the 19 submissions that have a held-out score against that score. The two agree up to sampling noise:
-a least-squares fit gives $\mathrm{acc}_{\mathrm{public}}=1.73\,\mathrm{acc}_{\mathrm{held\text{-}out}}-80.2$ with
+the public score of the 18 submissions that have a held-out score against that score. The two agree up to sampling noise:
+a least-squares fit gives $\mathrm{acc}_{\mathrm{public}}=1.73\,\mathrm{acc}_{\mathrm{held\text{-}out}}-80.1$ with
 correlation $r=0.93$, and every point lies within about one public-score standard error of the line. The slope is
 almost exactly the one \citeauthor{recht2019imagenet}~(\citeyear{recht2019imagenet}) measured between the original
 CIFAR-10 test set and their 2,000-image reproduction of it ($\mathrm{acc}_{\mathrm{new}}=1.69\,\mathrm{acc}_{\mathrm{orig}}-72.7$),
-but the intercept is 7.5 points lower: at 97.6\% their fit predicts 92.2\% on the new images, ours 88.6\% on the public
+but the intercept is 7.4 points lower: at 97.6\% their fit predicts 92.2\% on the new images, ours 89.1\% on the public
 set. Their best models lost 2.9--4.1\pp; ours lose about 8. The competition's hidden images, ``a version of'' CIFAR-10,
 therefore behave like a reproduction of the test set with a larger shift. A slope above one means that better held-out
 models lose less, so the ranking signal survives the shift. Two full-data runs (all 50,000 images, no held-out score) scored 88.8\% (KD2, seed 2027) and 89.7\%
@@ -412,7 +412,7 @@ whether they are better or worse.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/scatter.pdf}
-\caption{Public-leaderboard accuracy against held-out accuracy for the 19 submissions with a held-out score. Error bars are
+\caption{Public-leaderboard accuracy against held-out accuracy for the 18 submissions with a held-out score. Error bars are
 one binomial standard error on each axis; the line is a least-squares fit. The two selected submissions are outlined.}
 \label{fig:scatter}
 \end{figure}
@@ -486,9 +486,10 @@ consulted only to choose between finalists that the held-out split could not sep
 5,000 held-out images were used for every comparison, which makes the reported held-out numbers slightly optimistic as
 estimates of accuracy on new images drawn from the training distribution. The recipe was tuned at 100--400 epochs and not
 retuned for the long runs. Distillation was not run long enough for the students to reach their teachers, and the SAM second
-seed was lost to a scheduler cancellation. Re-evaluating cloud checkpoints on the laptop differed from the cloud number by
-one held-out image in a few of about thirty checks (a numerical difference between the two backends that we did not trace),
-so we report the cloud numbers. The full-data models have no held-out score.
+seed was lost to a scheduler cancellation. For two of the 22 held-out-validated cloud checkpoints that were evaluated
+again at prediction time (CE 2,300 seed 2027 and the 1,000-epoch control), that evaluation, on the cluster and again on
+the laptop, differed from the training log's final-epoch evaluation of the same weights by one held-out image, a numerical
+difference we did not trace; we report the training-log numbers throughout. The full-data models have no held-out score.
 Finally, the private-leaderboard scores of the two final submissions were not available when this report was written.
 
 \section{Conclusion}

@@ -251,10 +251,11 @@ if per_class:
 # `report/figures/data/experiments.csv` holds the held-out accuracy and the A100 training-step hours of every completed
 # run; its `source` column names the run each number comes from. Those runs are published as `runs/hpc/<name>/` (cluster)
 # and `runs/<name>/` (laptop) with their per-epoch `metrics.jsonl`. Below, each row is recomputed from the log: the
-# flip-TTA accuracy of the EMA weights at the last epoch and the sum of the logged training-step seconds. Two rows differ by
-# one held-out image between the cloud log and the re-evaluation of the retrieved checkpoint on the laptop, and the report
-# uses the laptop value in both cases: CE 2300 seed 2027 (log 97.52%, laptop 97.54%) and the CE 1000 control run (log
-# 97.64%, laptop 97.62%). Hours agree to within rounding except TA 400 seed 2027 (0.43 in the file, 0.451 in the log).
+# flip-TTA accuracy of the EMA weights at the last epoch and the sum of the logged training-step seconds. Every held-out
+# value in the file equals the log; the hours were recorded with two or three decimals and the cell lists any that differ
+# from the recomputed sum by more than that rounding. (For two runs, CE 2300 seed 2027 and the CE 1000 control, the
+# evaluation of the same weights at prediction time differed from the training log by one held-out image; the report and
+# the file use the log value, see the README.)
 
 # %%
 SCREENING = {("TA 400", "2026"): "r2-ta400-s2026", ("TA 400", "2027"): "r2-ta400-s2027", ("AA 400", "2026"): "r2-aa400-s2026",
@@ -280,7 +281,7 @@ def log_summary(directory):
 
 rows = list(csv.DictReader((ROOT / "report/figures/data/experiments.csv").open()))
 print(f"{'family':6s} {'label':12s} {'seed':>4s} {'dev':5s} {'run':30s} {'heldout csv':>11s} {'from log':>8s} {'diff':>6s} {'A100h csv':>9s} {'from log':>8s}")
-mismatches = []
+accuracy_mismatches, hour_differences = [], []
 for row in rows:
     directory = run_directory(row)
     accuracy, hours, last_epoch = log_summary(directory)
@@ -288,9 +289,14 @@ for row in rows:
     hours_text = f"{hours:8.3f}" if row["device"] == "a100" else "   (mps)"
     print(f"{row['family']:6s} {row['label']:12s} {row['seed']:>4s} {row['device']:5s} {directory.relative_to(ROOT).as_posix():30s} "
           f"{float(row['heldout']):11.2f} {accuracy:8.2f} {diff:+6.2f} {row['a100_hours'] or '':>9s} {hours_text}")
-    if abs(diff) > 1e-9 or (row["a100_hours"] and abs(hours - float(row["a100_hours"])) > 0.01):
-        mismatches.append((row["label"], row["seed"], round(diff, 2), row["a100_hours"], round(hours, 3)))
-print(f"\n{len(rows)} rows checked; rows that differ from the log by more than rounding: {mismatches}")
+    if abs(diff) > 1e-9:
+        accuracy_mismatches.append((row["label"], row["seed"], row["heldout"], round(accuracy, 2)))
+    if row["a100_hours"]:
+        decimals = len(row["a100_hours"].split(".")[1]) if "." in row["a100_hours"] else 0
+        if abs(hours - float(row["a100_hours"])) > 0.5 * 10 ** -decimals + 1e-9:  # the log does not round to the file value
+            hour_differences.append((row["label"], row["seed"], row["a100_hours"], round(hours, 3), f"{3600 * (hours - float(row['a100_hours'])):+.0f} s"))
+print(f"\n{len(rows)} rows checked. Held-out values that differ from the log: {accuracy_mismatches or 'none'}.")
+print(f"A100-hour cells that differ from the recomputed sum by more than their rounding: {hour_differences or 'none'}.")
 
 # %% [markdown]
 # ## The report's figures, drawn from the data files with the report's own code
@@ -326,7 +332,7 @@ figures.curves_figure()
 display(Image(filename=figures.HERE / "curves.png"))
 
 # %% [markdown]
-# **Held-out accuracy predicts the public leaderboard.** For the 19 submissions with a held-out score, the public score
+# **Held-out accuracy predicts the public leaderboard.** For the 18 submissions with a held-out score, the public score
 # (1,000 hidden test images) is plotted against the held-out accuracy (5,000 images); error bars are one binomial standard
 # error on each axis. The two agree up to sampling noise (slope about 1.7, r = 0.93); the hidden test images are about 8
 # points harder than the held-out split. The two outlined points are the final submissions.
@@ -334,7 +340,8 @@ display(Image(filename=figures.HERE / "curves.png"))
 # %%
 slope, intercept, correlation = figures.scatter_figure()
 display(Image(filename=figures.HERE / "scatter.png"))
-print(f"least-squares fit over the 19 scored submissions: public = {slope:.2f} x held-out {intercept:+.1f}, r = {correlation:.2f}")
+scored = sum(1 for r in csv.DictReader((ROOT / "report/figures/data/submissions.csv").open()) if r["heldout"])
+print(f"least-squares fit over the {scored} submissions with a held-out score: public = {slope:.2f} x held-out {intercept:+.1f}, r = {correlation:.2f}")
 
 # %% [markdown]
 # **Confusion matrix of the KD2 model on the held-out split** (EMA weights, flip TTA). Diagonal cells show the per-class

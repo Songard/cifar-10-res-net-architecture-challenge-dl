@@ -10,7 +10,7 @@ report also cites live one level up, in `runs/<name>/`.
 
 | Run | Report label | Where | Arch | Recipe | Epochs | Seed | Train imgs | Held-out % | A100 h | Notes |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| `ce-x4-1000-epochseed-s2026` | CE 1000, control | Table 4 | `resnet20-x4` | trivialaugment | 1000 | 2026 | 45,000 | 97.64 | 1.11 | same recipe with the per-epoch seeded policy; public 88.5 |
+| `ce-x4-1000-epochseed-s2026` | CE 1000, control | Table 4 | `resnet20-x4` | trivialaugment | 1000 | 2026 | 45,000 | 97.64 | 1.11 | same recipe with the per-epoch seeded policy; prediction-time evaluation (audit, receipt) 97.62, one image below the log; public 88.5 |
 | `cloud-kd-x4-400-s2026` | KD 400 | Fig. 2a | `resnet20-x4` | trivialaugment, KD a=0.9 T=4 (2 teachers) | 400 | 2026 | 45,000 | 97.40 | 0.23 | epochs 273-400 only: resumed the laptop run runs/kd-x4-400ep-45k (epochs 1-272) on the A100 |
 | `cloud-kd-x4-800-s2026` | KD 800 | Fig. 2a | `resnet20-x4` | trivialaugment, KD a=0.9 T=4 (2 teachers) | 800 | 2026 | 45,000 | 97.66 | 1.02 | teachers final-resnet18-64-352-45k and x4-400ep-45k (laptop runs); public 88.7 |
 | `cloud-kd-x4-800-s2027` | KD 800 | Fig. 2a | `resnet20-x4` | trivialaugment, KD a=0.9 T=4 (2 teachers) | 800 | 2027 | 45,000 | 97.18 | 1.06 | same teachers, seed 2027 |
@@ -38,7 +38,7 @@ report also cites live one level up, in `runs/<name>/`.
 | `r2-ta1800-s2026` | CE 1800 | Table 3, Table 4, Fig. 3 | `resnet20-x4` | trivialaugment | 1800 | 2026 | 45,000 | 97.66 | 1.96 | plain recipe; public 88.6 |
 | `r2-ta1800-s2027` | CE 1800 | Table 4 | `resnet20-x4` | trivialaugment | 1800 | 2027 | 45,000 | 97.50 | 1.99 |  |
 | `r2-ta2300-s2026` | CE 2300 | Table 4 | `resnet20-x4` | trivialaugment | 2300 | 2026 | 45,000 | 97.52 | 2.54 |  |
-| `r2-ta2300-s2027` | CE 2300 | Table 4 | `resnet20-x4` | trivialaugment | 2300 | 2027 | 45,000 | 97.52 | 2.53 | cloud log 97.52; laptop re-evaluation 97.54 (used in the report); public 88.6 |
+| `r2-ta2300-s2027` | CE 2300 | Table 4 | `resnet20-x4` | trivialaugment | 2300 | 2027 | 45,000 | 97.52 | 2.53 | prediction-time evaluation of the same weights (audit, Kaggle receipt) 97.54, one image above the log; public 88.6 |
 | `r2-ta3000-s2026` | CE 3000 | Table 4 | `resnet20-x4` | trivialaugment | 3000 | 2026 | 45,000 | 97.52 | 3.32 |  |
 | `r2-ta3000-s2027` | CE 3000 | Table 4 | `resnet20-x4` | trivialaugment | 3000 | 2027 | 45,000 | 97.46 | 3.30 |  |
 | `r2-ta400-s2026` | TA 400 | Table 5 | `resnet20-x4` | trivialaugment | 400 | 2026 | 45,000 | 97.36 | 0.43 | screening pair, seed 2026 |

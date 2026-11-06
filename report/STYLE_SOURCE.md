@@ -46,6 +46,18 @@ public-leaderboard rank and median in the "Final selection" paragraph (the figur
 2026-11-06; by 20:53 UTC the field had grown from 64 to 80 teams and the same score ranked 27th), and the GitHub
 repository on page 1 must be public.
 
+## Correction of two held-out values (2026-11-06, evening)
+
+The session that prepared the public repository cross-checked `figures/data/experiments.csv` against the published
+training logs (`runs/hpc/<run>/metrics.jsonl`) and found two rows that carried the prediction-time evaluation of the
+checkpoint instead of the training log's final-epoch evaluation of the same weights: `r2-ta2300-s2027` (log 97.52,
+prediction-time 97.54) and `ce-x4-1000-epochseed-s2026` (log 97.64, prediction-time 97.62). The 22 other cloud runs
+that have both numbers agree exactly. Since the Limitations paragraph states that training-log numbers are reported,
+both rows were changed to the log values in `experiments.csv` and `submissions.csv`, Table 4, the schedule paragraph,
+the overview and the matched-cost comparison were updated, the Limitations sentence now describes the two cases
+precisely, and Figures 2 and 4 were regenerated (the held-out/public fit was re-derived from the corrected data). The
+A100 hours of `r2-ta400-s2027` were corrected from 0.43 (the seed-2026 value) to 0.451 (sum of its logged step times).
+
 ## Competition and benchmark reports consulted (2026-11-06)
 
 Besides the papers listed above, the following were fetched and read in full to settle how competition-style

@@ -3,16 +3,16 @@ plain,CE 100,resnet20-x4,100,2026,96.72,,,mps,runs/improved100-resnet20-x4
 plain,CE 400,resnet20-x4,400,2026,97.28,,,mps,runs/x4-400ep-45k
 plain,CE 400,resnet20-x4,400,2026,97.24,0.404,,a100,project1-hpc/runs/cloud-x4-400-s2026
 plain,TA 400,resnet20-x4,400,2026,97.36,0.430,,a100,project1-hpc round-2 screening (cloud-evidence/20261103-0840)
-plain,TA 400,resnet20-x4,400,2027,97.32,0.43,,a100,project1-hpc round-2 screening (cloud-evidence/20261103-0938)
+plain,TA 400,resnet20-x4,400,2027,97.32,0.451,,a100,project1-hpc round-2 screening (cloud-evidence/20261103-0938)
 plain,CE 800,resnet20-x4,800,2026,97.30,0.822,,a100,project1-hpc/runs/cloud-x4-800-s2026
 plain,CE 800,resnet20-x4,800,2027,97.50,0.840,,a100,project1-hpc/runs/cloud-x4-800-s2027
 plain,CE 1000,resnet20-x4,1000,2026,97.54,1.030,,a100,project1-hpc/runs/cloud-x4-1000-s2026
-plain,CE 1000,resnet20-x4,1000,2026,97.62,1.112,,a100,project1-hpc/artifacts/candidates/ce-x4-1000-epochseed-s2026
+plain,CE 1000,resnet20-x4,1000,2026,97.64,1.112,,a100,project1-hpc/artifacts/candidates/ce-x4-1000-epochseed-s2026
 plain,CE 1600,resnet20-x4,1600,2026,97.48,1.632,,a100,project1-hpc/runs/cloud-x4-1600-s2026
 plain,CE 1800,resnet20-x4,1800,2026,97.66,1.964,,a100,project1-hpc/artifacts/candidates/r2-ta1800-s2026
 plain,CE 1800,resnet20-x4,1800,2027,97.50,2.00,,a100,project1-hpc round-2 (cloud-evidence/ta1800-20261103-1254)
 plain,CE 2300,resnet20-x4,2300,2026,97.52,2.536,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2026
-plain,CE 2300,resnet20-x4,2300,2027,97.54,2.526,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2027
+plain,CE 2300,resnet20-x4,2300,2027,97.52,2.526,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2027
 plain,CE 3000,resnet20-x4,3000,2026,97.52,3.316,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2026
 plain,CE 3000,resnet20-x4,3000,2027,97.46,3.302,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2027
 kd,KD 400,resnet20-x4,400,2026,97.40,,,a100,project1-hpc/artifacts/candidates/cloud-kd-x4-400-s2026

@@ -241,17 +241,18 @@ without max-pooling as in the CIFAR adaptation of the instructor-recommended ref
 | Figure 3 (1,800-epoch curves) | `report/figures/data/curves_1800.json`, extracted from `runs/hpc/{r2-ta1800-s2026,r2-kd2-ta1800-s2026,sam-x4-1800-s2026,r2-kd2-ta1800-s2027}/metrics.jsonl` |
 | Figure 5 (confusion matrix), per-class accuracies, pairwise disagreement (65 images, 98.2% either correct) | `report/figures/data/heldout_eval.json`, produced by re-evaluating the final checkpoints on the fixed split (the notebook recomputes and compares) |
 | Teacher-ensemble accuracies 97.84% (KD2 teachers) and 97.96% (KD5 teachers) | `evaluate_teacher_ensemble.py runs/cloud-x4-1000-s2026/last.pt runs/cloud-x4-800-s2027/last.pt --output <dir> --device mps` (`compare` averages the members' softened probabilities; both numbers are the T = 1 subset accuracy) |
-| Section 5.5 fit (slope 1.73, r = 0.93) | computed by `report/figures/make_results_figures.py` from `submissions.csv`; the notebook prints it |
+| Section 5.5 fit over the 18 submissions with a held-out score (public = 1.73 x held-out - 80.1, r = 0.93) | computed by `report/figures/make_results_figures.py` from `submissions.csv`; the notebook prints it |
 
 `report/figures/make_results_figures.py` draws Figures 2-5 from the data files and `make_pipeline.py` draws Figure 1 from
 `model.py` and the configs; `report/STYLE_SOURCE.md` records how the PDF is built.
 
-Held-out numbers are the flip-TTA accuracy of the EMA weights at the last epoch. For two runs the value logged on the A100
-and the value obtained by re-evaluating the retrieved checkpoint on the laptop differ by one held-out image, and the
-report's tables use the laptop value (the one in the run's audit and Kaggle receipt): `r2-ta2300-s2027` logs 97.52% and
-re-evaluates to 97.54%; `ce-x4-1000-epochseed-s2026` logs 97.64% and re-evaluates to 97.62%. Every other run, including
-the two final checkpoints (checked on the cloud, MPS and CPU), agrees exactly; the notebook prints the full comparison.
-In `experiments.csv` the A100 hours of `r2-ta400-s2027` read 0.43 where its log sums to 0.451. The KD-400 cloud run
+Held-out numbers in the report and in `experiments.csv` are the training log's final-epoch evaluation of the EMA weights
+with flip TTA (`tta_valid_accuracy` of the last row of `metrics.jsonl`). Of the 22 held-out cloud runs that were also
+evaluated again at prediction time (`submission.audit.json`, and the Kaggle receipt where uploaded), 20 give the same
+number both times and two differ by one held-out image: `r2-ta2300-s2027` (log 97.52%, prediction-time 97.54%) and
+`ce-x4-1000-epochseed-s2026` (log 97.64%, prediction-time 97.62%); the report uses the log value for both, as its
+Limitations paragraph states. The two final checkpoints agree exactly across the cloud log, MPS and CPU; the notebook
+prints the full comparison of `experiments.csv` with the published logs. The KD-400 cloud run
 (`runs/hpc/cloud-kd-x4-400-s2026`) holds epochs 273-400 only because it resumed the laptop run `runs/kd-x4-400ep-45k`
 (epochs 1-272).
 
