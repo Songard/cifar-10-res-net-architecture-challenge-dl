@@ -1,0 +1,27 @@
+{
+  "file": "artifacts/candidates/ce-x4-1000-epochseed-s2026/submission.csv",
+  "rows": 2000,
+  "sha256": "c44d4c8979afe454aadc9267fcd938488a06cb9ea8416af8456aa725df447724",
+  "checkpoint": "artifacts/candidates/ce-x4-1000-epochseed-s2026/last.pt",
+  "checkpoint_sha256": "ec00495f0e8dc71deee19e1a171d9c11c93421f5556b4fd759fcc5286f0a37fd",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1000,
+  "valid_accuracy_of_these_weights": 0.9762,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    169,
+    218,
+    205,
+    208,
+    202,
+    215,
+    180,
+    203,
+    204,
+    196
+  ],
+  "submitted_to_kaggle": false
+}

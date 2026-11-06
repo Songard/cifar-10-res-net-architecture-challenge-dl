@@ -1,0 +1,27 @@
+{
+  "file": "runs/lab-r18-200ep-mix/submission.csv",
+  "rows": 2000,
+  "sha256": "c27d5b3958a54aa3e374446b2ebe2b452b1e4fc56d1a788386a3d2545a78efb9",
+  "checkpoint": "runs/lab-r18-200ep-mix/last.pt",
+  "checkpoint_sha256": "f089585db1f51aff29f021dda66aea1e0f83dfe8cebe29271fbe43a2dc2e2796",
+  "arch": "resnet18-64-352",
+  "parameter_count": 4797002,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 200,
+  "valid_accuracy_of_these_weights": 0.9674,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    168,
+    220,
+    198,
+    208,
+    202,
+    205,
+    189,
+    202,
+    209,
+    199
+  ],
+  "submitted_to_kaggle": false
+}

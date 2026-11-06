@@ -1,0 +1,27 @@
+{
+  "file": "artifacts/candidates/r2-aa1800-s2027/submission.csv",
+  "rows": 2000,
+  "sha256": "e1e789ea33f8e0f2b565c408bbf7db99199367b117bf60d63c3233443d74c6ab",
+  "checkpoint": "artifacts/candidates/r2-aa1800-s2027/last.pt",
+  "checkpoint_sha256": "0412657d4876e9b882aa3b22215ac42136463afd418d67ac812c9b4e2e853595",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1800,
+  "valid_accuracy_of_these_weights": 0.9752,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    181,
+    216,
+    208,
+    199,
+    196,
+    215,
+    178,
+    202,
+    203,
+    202
+  ],
+  "submitted_to_kaggle": false
+}

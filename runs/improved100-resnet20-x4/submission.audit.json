@@ -1,0 +1,27 @@
+{
+  "file": "runs/improved100-resnet20-x4/submission.csv",
+  "rows": 2000,
+  "sha256": "b83205f95c406569ad6aef83debda691b04d70eacdfc2222202addc1802a1757",
+  "checkpoint": "runs/improved100-resnet20-x4/last.pt",
+  "checkpoint_sha256": "1c66cba7c179bbfa7480a52fd1035d930c11178902c58fc979eb8d64f1034635",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 100,
+  "valid_accuracy_of_these_weights": 0.9672,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    171,
+    212,
+    196,
+    212,
+    194,
+    220,
+    185,
+    200,
+    205,
+    205
+  ],
+  "submitted_to_kaggle": false
+}

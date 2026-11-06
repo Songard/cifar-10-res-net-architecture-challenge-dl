@@ -1,0 +1,27 @@
+{
+  "file": "/home/jl18215/dl-kd2-full-delivery-20261105/submission.csv",
+  "rows": 2000,
+  "sha256": "e159f371502807d5096d0586440a9d63b3786a783a2e1425c331fbe0ac7c7ef6",
+  "checkpoint": "runs/r2-kd2-ta1800-full-s2027/last.pt",
+  "checkpoint_sha256": "8d5a27172649956053b90196d13869217ecbac960968dd8730c0315188bad7c4",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1800,
+  "valid_accuracy_of_these_weights": 0.9858,
+  "validation_held_out": false,
+  "predicted_class_counts": [
+    172,
+    216,
+    210,
+    204,
+    197,
+    214,
+    180,
+    203,
+    200,
+    204
+  ],
+  "submitted_to_kaggle": false
+}

@@ -1,0 +1,27 @@
+{
+  "file": "artifacts/candidates/cloud-x4-1000-s2026/submission.csv",
+  "rows": 2000,
+  "sha256": "c0cfa57d0da9f21182d59e44e04d4c5ccf28144d7f07b85b69ae70a829701802",
+  "checkpoint": "runs/cloud-x4-1000-s2026/last.pt",
+  "checkpoint_sha256": "501eea6bad8d39dd0acaf230d1ab68611a6b2fbc8d27fefc2cdcf9df1fb00100",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1000,
+  "valid_accuracy_of_these_weights": 0.9754,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    170,
+    226,
+    209,
+    197,
+    192,
+    217,
+    186,
+    204,
+    203,
+    196
+  ],
+  "submitted_to_kaggle": false
+}

@@ -1,0 +1,27 @@
+{
+  "file": "runs/lab-w32-randconv/submission.csv",
+  "rows": 2000,
+  "sha256": "51dc4597147d4a2ce023aecf5972d4fc596a4117b933eec1ba0c804e9e61b0a0",
+  "checkpoint": "runs/lab-w32-randconv/last.pt",
+  "checkpoint_sha256": "adb7aef50e3f64397d6f5239750fe69d42578deeb123742aa7ba41d2bd7b7a7e",
+  "arch": "resnet18-w32",
+  "parameter_count": 2797610,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 100,
+  "valid_accuracy_of_these_weights": 0.9396,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    175,
+    215,
+    200,
+    221,
+    190,
+    213,
+    182,
+    203,
+    212,
+    189
+  ],
+  "submitted_to_kaggle": false
+}

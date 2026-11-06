@@ -1,0 +1,27 @@
+{
+  "file": "runs/baseline-100ep/submission.csv",
+  "rows": 2000,
+  "sha256": "a2dc18398b227fcfe5f93643563e1a73c9b2026315ace425ea84147ef54f9e2b",
+  "checkpoint": "runs/baseline-100ep/last.pt",
+  "checkpoint_sha256": "4dd66d9306397eb1bb5c47f12cfa48f9f97fdce0c0ea0191cd7c3e97e73145c0",
+  "arch": "resnet18-w32",
+  "parameter_count": 2797610,
+  "weights": "model",
+  "tta": "flip",
+  "epoch": 100,
+  "valid_accuracy_of_these_weights": 0.9484,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    171,
+    216,
+    209,
+    209,
+    193,
+    210,
+    177,
+    203,
+    207,
+    205
+  ],
+  "submitted_to_kaggle": false
+}

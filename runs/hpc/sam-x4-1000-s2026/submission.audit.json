@@ -1,0 +1,27 @@
+{
+  "file": "artifacts/candidates/sam-x4-1000-s2026/submission.csv",
+  "rows": 2000,
+  "sha256": "b871e2ae302b1090fa767bdd4aa134d8afb26b1b235f60f82317e6e62e2f2ebf",
+  "checkpoint": "artifacts/candidates/sam-x4-1000-s2026/last.pt",
+  "checkpoint_sha256": "986e8a82bf35c316a958d4756aeefa9ff94da1ea445b9fc9de1a3a6db702c9f7",
+  "arch": "resnet20-x4",
+  "parameter_count": 4327754,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1000,
+  "valid_accuracy_of_these_weights": 0.9772,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    166,
+    215,
+    207,
+    217,
+    198,
+    209,
+    181,
+    201,
+    208,
+    198
+  ],
+  "submitted_to_kaggle": false
+}

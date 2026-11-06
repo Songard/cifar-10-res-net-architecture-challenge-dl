@@ -1,0 +1,27 @@
+{
+  "file": "runs/final-resnet18-64-352-45k/submission.csv",
+  "rows": 2000,
+  "sha256": "d3b85b766118b208da7bd9dcc74fbee2156207b3652f7125d560b55a37b1da93",
+  "checkpoint": "runs/final-resnet18-64-352-45k/last.pt",
+  "checkpoint_sha256": "8cc1db6cc95f045fe1e1ff955fd1f37cc8ba208633792fd2dd3707104b69b9a5",
+  "arch": "resnet18-64-352",
+  "parameter_count": 4797002,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 200,
+  "valid_accuracy_of_these_weights": 0.9692,
+  "validation_held_out": true,
+  "predicted_class_counts": [
+    170,
+    207,
+    209,
+    217,
+    197,
+    204,
+    180,
+    197,
+    215,
+    204
+  ],
+  "submitted_to_kaggle": false
+}

@@ -1,0 +1,30 @@
+{
+  "file": "runs/w68-full-s2026/submission.csv",
+  "rows": 2000,
+  "sha256": "85d3b3e3c3d1b05890b451242ab776aba6c940e87babc30e49afc9678af40c2c",
+  "checkpoint": "runs/w68-full-s2026/last.pt",
+  "checkpoint_sha256": "41f5179d52de2342e86385d919e6a08bcbcf6f5776f262c8b5f9c872dfc893cf",
+  "arch": "resnet20-w68",
+  "parameter_count": 4884926,
+  "weights": "ema",
+  "tta": "flip",
+  "epoch": 1800,
+  "valid_accuracy_of_these_weights": 1.0,
+  "validation_held_out": false,
+  "full_train": true,
+  "train_images": 50000,
+  "twin": null,
+  "predicted_class_counts": [
+    166,
+    222,
+    210,
+    203,
+    194,
+    209,
+    184,
+    206,
+    207,
+    199
+  ],
+  "submitted_to_kaggle": false
+}
