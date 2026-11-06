@@ -43,6 +43,7 @@ to a file in this repository (see [Where the report's numbers come from](#where-
 | `runs/<name>/` | Laptop runs: resolved settings (`config.json`), per-epoch log (`metrics.jsonl`), submission audit. Checkpoints and CSVs are not published. |
 | `runs/hpc/<name>/` | The same three files for every A100 run cited in the report, indexed in [`runs/hpc/README.md`](runs/hpc/README.md). |
 | `artifacts/kaggle_submissions.jsonl` | One receipt per Kaggle upload (21): file hash, checkpoint, held-out accuracy, public score. `kaggle_upload.py` wrote them. |
+| `artifacts/final-checkpoints.sha256` | SHA-256 of the two final checkpoints (the release assets), for `shasum -a 256 -c`. |
 | `report/` | AAAI-format report source, figure scripts (`figures/make_*.py`) and the figure data (`figures/data/`). |
 | `project1_results.ipynb` (`project1_results.py`) | Executed results notebook and its jupytext source. `analysis.py` holds its read-only helpers. |
 | `review_runs.py` | Summary table and curves of every run in `runs/` (writes `artifacts/experiments_summary.json`, `artifacts/experiment_curves.png`). |
@@ -177,32 +178,61 @@ epochs), KD2 5.0 s (2.53 h) plus 1.87 h for the two teachers, KD5 6.8 s (3.4 h),
 same network trains at about 24 s per epoch with the same recipe (`runs/x4-400ep-45k`). Results need not match the
 published runs bit for bit on other hardware; the published per-epoch logs show the expected curves.
 
-## Predicting and checking a submission
+## Final checkpoints and the submission files
+
+### Getting the checkpoints
+
+The two final checkpoints are the `last.pt` files of the two runs: model and EMA weights, optimizer and RNG state, the data
+audit and the resolved configuration, 52 MB each. They are not in the git history; they are published as assets of a GitHub
+release of this repository (https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl/releases, once published):
+
+| Release asset | Run | SHA-256 | Size |
+| --- | --- | --- | ---: |
+| `r2-kd2-ta1800-s2026-last.pt` | `r2-kd2-ta1800-s2026` (KD2, final, Kaggle 90.1%) | `79c348d8011b13954f9a6798ea10a73ae62502a25ea5606803875234b71ce5d4` | 52,085,726 bytes |
+| `sam-x4-1800-s2026-last.pt` | `sam-x4-1800-s2026` (SAM, final, Kaggle 90.0%) | `4269fb82eca14b0ca9b8df4fb254810a3c89ac0d50c8479e022105ca0172ce7c` | 52,085,662 bytes |
+
+Download both, place them as `checkpoints/<run>/last.pt` (the folder is ignored by git) and verify them against
+[`artifacts/final-checkpoints.sha256`](artifacts/final-checkpoints.sha256):
+
+```sh
+mkdir -p checkpoints/r2-kd2-ta1800-s2026 checkpoints/sam-x4-1800-s2026
+mv ~/Downloads/r2-kd2-ta1800-s2026-last.pt checkpoints/r2-kd2-ta1800-s2026/last.pt
+mv ~/Downloads/sam-x4-1800-s2026-last.pt checkpoints/sam-x4-1800-s2026/last.pt
+shasum -a 256 -c artifacts/final-checkpoints.sha256      # sha256sum -c on Linux
+```
+
+Any directory with the same `<run>/last.pt` layout works instead: set `PROJECT1_CHECKPOINTS=/path/to/dir` (a colon-separated
+list is allowed) before running the notebook. By default the notebook looks in `checkpoints/` and then in
+`../project1-hpc/artifacts/candidates/`, the working copy of the cluster deliveries on the author's machine. The older
+laptop checkpoints under `runs/*/` load with the current code as well (checkpoints of the original baseline record only
+`width`; `make_model` handles both).
+
+### Reproducing and checking the submission files
 
 `train.py predict` loads a checkpoint, rebuilds the network named in it, predicts the 2,000 test images (EMA weights, flip
 TTA), writes `id,label` rows in `sample_submission.csv` order plus a `.audit.json` sidecar (CSV and checkpoint SHA-256,
 architecture, parameter count, epoch, predicted class counts, and the held-out accuracy of exactly those weights), and
 refuses to run if the parameter count exceeds 5,000,000. `check_submission.py` re-reads the CSV and its audit independently
-and lists the Kaggle receipts recorded for that exact file.
+(header, 2,000 rows in `sample_submission.csv` order, labels 0-9, hashes, parameter limit) and lists the Kaggle receipts
+recorded for that exact file. With the checkpoints in place and the data prepared:
 
 ```sh
-.venv/bin/python train.py predict --checkpoint checkpoints/r2-kd2-ta1800-s2026/last.pt --output predictions/kd2/submission.csv --weights ema --tta flip --device mps --batch-size 256
-.venv/bin/python check_submission.py predictions/kd2/submission.csv
+.venv/bin/python train.py predict --checkpoint checkpoints/r2-kd2-ta1800-s2026/last.pt --output predictions/r2-kd2-ta1800-s2026/submission.csv --weights ema --tta flip --device mps --batch-size 256
+.venv/bin/python train.py predict --checkpoint checkpoints/sam-x4-1800-s2026/last.pt --output predictions/sam-x4-1800-s2026/submission.csv --weights ema --tta flip --device mps --batch-size 256
+.venv/bin/python check_submission.py predictions/r2-kd2-ta1800-s2026/submission.csv
+.venv/bin/python check_submission.py predictions/sam-x4-1800-s2026/submission.csv
+shasum -a 256 predictions/*/submission.csv
 ```
 
-Expected output for the two final checkpoints (verified on 2026-11-06 with this code on the laptop, on both the MPS and the
-CPU device):
+Pass `--device cuda` or `--device cpu` on other machines; the files are identical on MPS and CPU. Each `predict` prints its
+audit, including `valid_accuracy_of_these_weights` (the held-out accuracy) and the CSV's `sha256`, which must equal the
+hash in the Kaggle receipt of the upload (`artifacts/kaggle_submissions.jsonl`, listed by `check_submission.py` under
+`kaggle_receipts_for_this_file`). Expected values, verified on 2026-11-06 with this code on the laptop (MPS and CPU):
 
-| Checkpoint | Checkpoint SHA-256 | Held-out accuracy of these weights | `submission.csv` SHA-256 (= Kaggle receipt) |
-| --- | --- | ---: | --- |
-| `r2-kd2-ta1800-s2026/last.pt` | `79c348d8011b13954f9a6798ea10a73ae62502a25ea5606803875234b71ce5d4` | 0.9762 | `e50ca98dd471606492eafec432da509c5d5967105c880a0ce98eb162fc7b39a1` |
-| `sam-x4-1800-s2026/last.pt` | `4269fb82eca14b0ca9b8df4fb254810a3c89ac0d50c8479e022105ca0172ce7c` | 0.9758 | `7aec582b09645ecdd1c983491c350bb87e08fc6be5408f7ecca8ea6cbf62f2ee` |
-
-**Checkpoints.** The checkpoints (52 MB each) are not in the git history. They are distributed separately (the repository's
-Releases page, once published, or from the author). Put them under `checkpoints/<run>/last.pt` (the notebook also looks in
-`../project1-hpc/artifacts/candidates/<run>/last.pt`, the working copy of the cluster deliveries, and in the directories
-listed in the environment variable `PROJECT1_CHECKPOINTS`, colon-separated). The older laptop checkpoints under `runs/*/`
-load with the current code as well (checkpoints of the original baseline record only `width`; `make_model` handles both).
+| Checkpoint | Held-out accuracy of these weights | `submission.csv` SHA-256 (= Kaggle receipt) | Kaggle ref |
+| --- | ---: | --- | --- |
+| `checkpoints/r2-kd2-ta1800-s2026/last.pt` | 0.9762 | `e50ca98dd471606492eafec432da509c5d5967105c880a0ce98eb162fc7b39a1` | 57959285 |
+| `checkpoints/sam-x4-1800-s2026/last.pt` | 0.9758 | `7aec582b09645ecdd1c983491c350bb87e08fc6be5408f7ecca8ea6cbf62f2ee` | 58002253 |
 
 ## Parameter count
 
@@ -263,7 +293,7 @@ count and layout, loads the two final checkpoints and recomputes their held-out 
 with `train.py predict` and compares their SHA-256 with the Kaggle receipts, cross-checks `experiments.csv` against the
 published per-epoch logs, draws the report's figures with the report's own code, and prints the final Kaggle test accuracy
 and parameter count. It needs the prepared data cache (`data/cache/`) and, for the checkpoint sections, the two final
-checkpoints (see above); without them those sections print what is missing and the rest still runs. To re-execute it from
+checkpoints (see [Getting the checkpoints](#getting-the-checkpoints)); without them those sections print what is missing and the rest still runs. To re-execute it from
 its jupytext source:
 
 ```sh
