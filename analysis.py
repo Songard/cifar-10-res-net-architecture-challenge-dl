@@ -1,4 +1,4 @@
-"""Read-only helpers for the results notebook and report figures: logs, checkpoints, held-out predictions."""
+"""Read-only helpers for the results notebook: logs, checkpoints, predictions on the fixed validation set."""
 
 import json
 from pathlib import Path
@@ -42,6 +42,21 @@ def validation_predictions(model, device, tta="none", batch_size=500):
         predicted.append(predict_logits(model, x, tta).argmax(1).cpu())
         labels.append(y.cpu())
     return torch.cat(predicted).numpy(), torch.cat(labels).numpy()
+
+
+@torch.no_grad()
+def validation_probabilities(model, device, batch_size=500):
+    """Class probabilities and true labels on the validation set, as the submissions are predicted.
+
+    The logits of each image and of its mirror image are averaged (flip test-time augmentation) before the softmax,
+    exactly as in report/figures/make_error_analysis.py.
+    """
+    data = Data(Path("data"), device, "batched", False)
+    probabilities, labels = [], []
+    for x, y in data.batches(data.valid, batch_size):
+        probabilities.append(torch.softmax(predict_logits(model, x, "flip"), 1).cpu())
+        labels.append(y.cpu())
+    return torch.cat(probabilities).numpy(), torch.cat(labels).numpy()
 
 
 def confusion(predicted, labels):
