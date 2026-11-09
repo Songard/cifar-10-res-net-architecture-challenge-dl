@@ -26,9 +26,9 @@ DATA = HERE / "data"
 # Colors: a validated categorical palette (slots 1-3 pass all-pairs CVD checks), ink and chrome tokens.
 C = {"plain": "#2a78d6", "kd": "#eb6834", "sam": "#1baf7a", "other": "#898781",
      "ink": "#0b0b0b", "secondary": "#52514e", "muted": "#898781", "grid": "#e1e0d9", "axis": "#c3c2b7"}
-FAMILY = {"plain": ("plain recipe (CE)", "o", C["plain"]), "kd": ("+ distillation (KD)", "^", C["kd"]),
+FAMILY = {"plain": ("standard training", "o", C["plain"]), "kd": ("+ knowledge distillation", "^", C["kd"]),
           "sam": ("+ SAM", "s", C["sam"]), "aug": ("other augmentation", "D", C["other"]),
-          "arch": ("other architecture", "P", C["other"]), "full": ("full 50k (no held-out)", "x", C["other"])}
+          "arch": ("other architecture", "P", C["other"]), "full": ("all 50,000 images (no validation)", "x", C["other"])}
 SE5K = 100 * np.sqrt(0.976 * 0.024 / 5000)   # one standard error of a 97.6% accuracy on 5,000 images (0.22 pp)
 SE1K = 100 * np.sqrt(0.89 * 0.11 / 1000)     # one standard error of an 89% accuracy on 1,000 images (0.99 pp)
 
@@ -60,7 +60,7 @@ def fnum(s):
 # ----------------------------------------------------------------------------- Figure: schedule length and cost
 def schedule_figure():
     rows = read_csv("experiments.csv")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 2.55), gridspec_kw={"width_ratios": [1.25, 1], "wspace": 0.22})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 1.95), gridspec_kw={"width_ratios": [1.25, 1], "wspace": 0.22})
     rng = np.random.default_rng(0)
 
     # (a) accuracy against schedule length, every completed resnet20-x4 run plus the other architectures
@@ -84,23 +84,23 @@ def schedule_figure():
     ax1.minorticks_off()
     ax1.set_xlim(85, 3600)
     ax1.set_ylim(96.3, 97.9)
-    ax1.set_xlabel("Training epochs (one cosine cycle each)")
-    ax1.set_ylabel("Held-out accuracy (%)")
-    ax1.set_title("(a) Longer schedules, then saturation", loc="left")
+    ax1.set_xlabel("Training epochs")
+    ax1.set_ylabel("Validation accuracy (%)")
+    ax1.set_title("(a) Accuracy rises with training length, then levels off", loc="left")
     # error-bar key
     ax1.errorbar(110, 97.65, yerr=SE5K, color=C["secondary"], capsize=2, lw=0.8, zorder=5)
-    ax1.text(125, 97.65, "±1 SE\n(5,000 images)", fontsize=5.6, color=C["secondary"], va="center")
+    ax1.text(125, 97.65, "±1 standard error\n(5,000 images)", fontsize=5.6, color=C["secondary"], va="center")
     # direct labels on the points the text discusses
-    ax1.annotate("SAM 1000", (1000, 97.72), xytext=(560, 97.80), fontsize=6, color=C["secondary"],
+    ax1.annotate("SAM, 1,000 epochs", (1000, 97.72), xytext=(440, 97.80), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax1.annotate("KD2 / KD5 1800", (1850, 97.66), xytext=(2300, 97.78), fontsize=6, color=C["secondary"],
+    ax1.annotate("KD2, KD5", (1850, 97.66), xytext=(2300, 97.78), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax1.annotate("RandAugment 400", (390, 97.00), xytext=(150, 97.08), fontsize=6, color=C["secondary"],
+    ax1.annotate("RandAugment, 400 epochs", (390, 97.00), xytext=(120, 97.08), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
     ax1.annotate("ResNet-18 variant", (104, 96.42), xytext=(118, 96.56), fontsize=6, color=C["secondary"], va="center",
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
     handles = [Line2D([], [], marker=m, color=c, ls="none", ms=5, label=n) for n, m, c in FAMILY.values() if n != FAMILY["full"][0]]
-    handles.append(Line2D([], [], marker="o", mfc="white", mec=C["ink"], ls="none", ms=5, label="hollow: Apple M5 Pro run"))
+    handles.append(Line2D([], [], marker="o", mfc="white", mec=C["ink"], ls="none", ms=5, label="hollow: trained on the laptop"))
     ax1.legend(handles=handles, loc="lower right", ncol=1, handletextpad=0.3, borderaxespad=0.2, labelspacing=0.25)
     tidy(ax1)
 
@@ -118,21 +118,21 @@ def schedule_figure():
             ax2.plot(h + t, y, marker=marker, ms=5.2, mfc="white", mec=color, mew=0.9, ls="none", zorder=3)
     ax2.set_xlim(0, 8.2)
     ax2.set_ylim(97.1, 97.85)
-    ax2.set_xlabel("A100 training-step hours (hollow: + teacher training)")
-    ax2.set_title("(b) Accuracy against measured cost", loc="left")
-    ax2.annotate("CE 1800", (1.93, 97.60), xytext=(0.45, 97.66), fontsize=6, color=C["secondary"],
+    ax2.set_xlabel("Training time on an A100, hours (hollow: including the teachers)")
+    ax2.set_title("(b) Accuracy against training time", loc="left")
+    ax2.annotate("standard, 1,800", (1.97, 97.665), xytext=(2.3, 97.80), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("CE 3000", (3.31, 97.48), xytext=(3.75, 97.30), fontsize=6, color=C["secondary"],
+    ax2.annotate("standard, 3,000", (3.31, 97.48), xytext=(3.75, 97.30), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("SAM 1800", (3.2, 97.58), xytext=(3.55, 97.47), fontsize=6, color=C["secondary"],
+    ax2.annotate("SAM, 1,800", (3.2, 97.58), xytext=(3.55, 97.47), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("SAM 1000", (1.77, 97.72), xytext=(0.5, 97.78), fontsize=6, color=C["secondary"],
+    ax2.annotate("SAM, 1,000", (1.77, 97.72), xytext=(0.5, 97.78), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("KD5 1800 + teachers", (7.68, 97.66), xytext=(5.1, 97.80), fontsize=6, color=C["secondary"],
+    ax2.annotate("KD5 with teachers", (7.68, 97.66), xytext=(5.3, 97.80), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("KD2 1800", (2.5, 97.63), xytext=(1.9, 97.26), fontsize=6, color=C["secondary"],
+    ax2.annotate("KD2", (2.5, 97.63), xytext=(2.1, 97.26), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax2.annotate("+ two teachers", (4.4, 97.64), xytext=(4.5, 97.52), fontsize=6, color=C["secondary"],
+    ax2.annotate("KD2 with teachers", (4.4, 97.64), xytext=(4.5, 97.52), fontsize=6, color=C["secondary"],
                  arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
     tidy(ax2)
     fig.savefig(HERE / "schedule.pdf")
@@ -143,9 +143,9 @@ def schedule_figure():
 # ----------------------------------------------------------------------------- Figure: 1,800-epoch curves
 def curves_figure():
     curves = json.load(open(DATA / "curves_1800.json"))
-    runs = [("r2-ta1800-s2026", "plain recipe", C["plain"]), ("r2-kd2-ta1800-s2026", "KD2 (selected)", C["kd"]),
-            ("sam-x4-1800-s2026", "SAM (selected)", C["sam"])]
-    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.2), gridspec_kw={"width_ratios": [1.15, 1, 1], "wspace": 0.42})
+    runs = [("r2-ta1800-s2026", "standard training", C["plain"]), ("r2-kd2-ta1800-s2026", "KD2 (submitted)", C["kd"]),
+            ("sam-x4-1800-s2026", "SAM (submitted)", C["sam"])]
+    fig, axes = plt.subplots(1, 3, figsize=(7.0, 1.85), gridspec_kw={"width_ratios": [1.15, 1, 1], "wspace": 0.42})
     ax_a, ax_b, ax_c = axes
     for run, label, color in runs:
         d = curves[run]
@@ -160,8 +160,8 @@ def curves_figure():
     ax_a.set_xlim(0, 1800)
     ax_a.set_ylim(92, 98.2)
     ax_a.set_xlabel("Epoch")
-    ax_a.set_ylabel("Held-out accuracy, EMA + flip (%)")
-    ax_a.set_title("(a) Full schedule", loc="left")
+    ax_a.set_ylabel("Validation accuracy (%)")
+    ax_a.set_title("(a) All 1,800 epochs", loc="left")
     ax_a.legend(loc="lower right", handlelength=1.4)
     ax_b.set_xlim(1000, 1800)
     ax_b.set_ylim(96.6, 97.9)
@@ -172,7 +172,7 @@ def curves_figure():
     ax_c.set_xlim(0, 1800)
     ax_c.set_ylim(80, 100)
     ax_c.set_xlabel("Epoch")
-    ax_c.set_ylabel("Training-batch accuracy (%)")
+    ax_c.set_ylabel("Training accuracy (%)")
     ax_c.set_title("(c) Accuracy on augmented batches", loc="left")
     for ax in axes:
         ax.set_xticks([0, 600, 1200, 1800] if ax is not ax_b else [1000, 1200, 1400, 1600, 1800])
@@ -185,7 +185,7 @@ def curves_figure():
 # ----------------------------------------------------------------------------- Figure: held-out vs public
 def scatter_figure():
     rows = [r for r in read_csv("submissions.csv") if r["heldout"]]
-    fig, ax = plt.subplots(figsize=(3.3, 2.75))
+    fig, ax = plt.subplots(figsize=(3.3, 2.4))
     xs, ys = [], []
     for r in rows:
         x, y = float(r["heldout"]), float(r["public"])
@@ -201,21 +201,21 @@ def scatter_figure():
     corr = np.corrcoef(xs, ys)[0, 1]
     grid = np.linspace(94.4, 98.0, 10)
     ax.plot(grid, slope * grid + intercept, color=C["secondary"], lw=0.8, ls="-", alpha=0.7, zorder=2)
-    ax.annotate("KD2 1800: 90.1 (selected)", (97.62, 90.1), xytext=(94.55, 90.55), fontsize=6, color=C["secondary"],
+    ax.annotate("KD2, 1,800 epochs: 90.1 (submitted)", (97.62, 90.1), xytext=(94.55, 90.55), fontsize=6, color=C["secondary"],
                 arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax.annotate("SAM 1800: 90.0 (selected)", (97.58, 90.0), xytext=(94.55, 89.75), fontsize=6, color=C["secondary"],
+    ax.annotate("SAM, 1,800 epochs: 90.0 (submitted)", (97.58, 90.0), xytext=(94.55, 89.75), fontsize=6, color=C["secondary"],
                 arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax.annotate("SAM 1000", (97.72, 89.3), xytext=(96.85, 89.05), fontsize=6, color=C["secondary"],
+    ax.annotate("SAM, 1,000", (97.72, 89.3), xytext=(96.85, 89.05), fontsize=6, color=C["secondary"],
                 arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax.annotate("CE 1000", (97.54, 89.5), xytext=(96.3, 89.4), fontsize=6, color=C["secondary"],
+    ax.annotate("standard, 1,000", (97.54, 89.5), xytext=(95.75, 89.25), fontsize=6, color=C["secondary"],
                 arrowprops=dict(arrowstyle="-", color=C["axis"], lw=0.5))
-    ax.text(95.85, 83.35, f"least-squares fit: slope {slope:.1f}, r = {corr:.2f}\n(19 submissions with a held-out score)", fontsize=6, color=C["secondary"])
+    ax.text(95.85, 83.35, f"least-squares fit: slope {slope:.1f}, r = {corr:.2f}\n({len(rows)} submissions with a validation score)", fontsize=6, color=C["secondary"])
     ax.set_xlim(94.4, 98.0)
     ax.set_ylim(83, 91)
-    ax.set_xlabel("Held-out accuracy (5,000 images, %)")
-    ax.set_ylabel("Kaggle public accuracy (1,000 images, %)")
+    ax.set_xlabel("Validation accuracy (5,000 images, %)")
+    ax.set_ylabel("Public accuracy (1,000 images, %)")
     handles = [Line2D([], [], marker=m, color=c, ls="none", ms=4.5, label=n) for k, (n, m, c) in FAMILY.items() if k in ("plain", "kd", "sam", "arch")]
-    ax.legend(handles=handles, loc="lower right", bbox_to_anchor=(1.0, 0.11), handletextpad=0.3, borderaxespad=0.1, labelspacing=0.25)
+    ax.legend(handles=handles, loc="center left", bbox_to_anchor=(0.01, 0.5), handletextpad=0.3, borderaxespad=0.1, labelspacing=0.25)
     tidy(ax, y=False)
     fig.savefig(HERE / "scatter.pdf")
     fig.savefig(HERE / "scatter.png")
@@ -255,9 +255,50 @@ def confusion_figure():
     plt.close(fig)
 
 
+# ----------------------------------------------------------------------------- Figure: where the errors are
+def errors_figure():
+    ev = json.load(open(DATA / "error_analysis.json"))
+    classes = ev["classes"]
+    length = ev["training_length"]
+    short, long_ = np.array(length["errors_100_per_class"]), np.array(length["errors_1800_per_class"])
+    order = np.argsort(-short, kind="stable")
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.3, 1.5), gridspec_kw={"width_ratios": [2.5, 1], "wspace": 0.28})
+
+    # (a) errors per class with the same network and procedure, 100 against 1,800 epochs
+    x = np.arange(10)
+    ax1.bar(x - 0.19, short[order], width=0.36, color=C["other"], label="100 epochs")
+    ax1.bar(x + 0.19, long_[order], width=0.36, color=C["plain"], label="1,800 epochs")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels([classes[i] for i in order], rotation=45, ha="right", rotation_mode="anchor", fontsize=5.8)
+    ax1.set_ylabel("Errors (of 500 images)")
+    ax1.set_ylim(0, 37)
+    ax1.set_title("(a) Errors per class", loc="left")
+    ax1.legend(loc="upper right", handlelength=1.0, labelspacing=0.25, borderaxespad=0.1)
+    tidy(ax1)
+    ax1.tick_params(axis="x", length=0, colors=C["ink"])
+
+    # (b) how many of the four 1,800-epoch models miss an image
+    wrong = ev["long_models"]["wrong_in_exactly"]
+    counts = [wrong[str(k)] for k in range(1, 5)]
+    ax2.bar(range(1, 5), counts, width=0.62, color=C["plain"])
+    for k, n in zip(range(1, 5), counts):
+        ax2.text(k, n + 1.5, str(n), ha="center", va="bottom", fontsize=6, color=C["ink"])
+    ax2.set_xticks(range(1, 5))
+    ax2.set_ylim(0, 80)
+    ax2.set_xlabel("Models wrong")
+    ax2.set_ylabel("Images")
+    ax2.set_title("(b) Shared errors", loc="left")
+    tidy(ax2)
+    ax2.tick_params(axis="x", length=0)
+    fig.savefig(HERE / "errors.pdf")
+    fig.savefig(HERE / "errors.png")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     schedule_figure()
     curves_figure()
     print("scatter fit (slope, intercept, r):", scatter_figure())
     confusion_figure()
-    print("wrote schedule/curves/scatter/confusion .pdf and .png in", HERE)
+    errors_figure()
+    print("wrote schedule/curves/scatter/confusion/errors .pdf and .png in", HERE)

@@ -98,7 +98,7 @@ thumbs = [np.array(image), np.array(augmented), np.array(crop_flip), cut]
 box(2.4, 56.0, 25.4, 12.0, "", key="data", r=1.2)
 ax.text(15.1, 65.4, "CIFAR-10 training set", ha="center", va="center", fontsize=5.0, fontweight="bold",
         color=C["ink"], zorder=4)
-ax.text(15.1, 60.2, "50,000 images, 32×32, 10 classes\nselection: 45,000 train / 5,000 held-out\n"
+ax.text(15.1, 60.2, "50,000 images, 32×32, 10 classes\n45,000 training / 5,000 validation\n"
         "final models: the same 45,000", ha="center", va="center", fontsize=4.1, color=C["ink"], zorder=4,
         linespacing=1.25)
 
@@ -118,16 +118,16 @@ for j, line in enumerate(["① original image", "② TrivialAugment: one random 
 label(15.1, 31.0, "every epoch sees a new random view of each image", fs=3.6, style="italic")
 
 box(2.4, 13.0, 25.4, 14.6, "", key="data", r=1.2)
-ax.text(15.1, 24.8, "Held-out 5,000", ha="center", va="center", fontsize=4.6, fontweight="bold", color=C["ink"], zorder=4)
-ax.text(15.1, 21.6, "only to compare recipes and seeds;\nnever trained on", ha="center", va="center", fontsize=3.8,
+ax.text(15.1, 24.8, "Validation 5,000", ha="center", va="center", fontsize=4.6, fontweight="bold", color=C["ink"], zorder=4)
+ax.text(15.1, 21.6, "only to compare training setups and\nseeds; never trained on", ha="center", va="center", fontsize=3.8,
         color=C["ink"], zorder=4, linespacing=1.2)
 ax.text(15.1, 17.9, "Hidden test 2,000", ha="center", va="center", fontsize=4.6, fontweight="bold", color=C["ink"], zorder=4)
-ax.text(15.1, 15.0, "read once by predict: no adaptation,\nno manual labels, no selection on it",
+ax.text(15.1, 15.0, "used only to write the submissions: no\nadaptation, no manual labels",
         ha="center", va="center", fontsize=3.8, color=C["ink"], zorder=4, linespacing=1.2)
-label(15.1, 8.4, "one image = 0.02 pp held-out, 0.1 pp public", fs=3.6, style="italic")
+label(15.1, 8.4, "one image = 0.02 points validation, 0.1 points public", fs=3.6, style="italic")
 
 # --------------------------------------------------------------------------------------------- (b) network
-panel(30.4, PY, 54.6, PH, "(b) Network: ResNet-20 layout at 4× width (4.33M parameters)")
+panel(30.4, PY, 54.6, PH, "(b) Network: ResNet-20 architecture at 4× width (4.33M parameters)")
 model = build_model("resnet20-x4")
 assert parameter_count(model) == 4_327_754 and multiply_accumulates(model) == 647_694_848
 stage_params = [sum(p.numel() for b in model.blocks[i * 3:(i + 1) * 3] for p in b.parameters()) for i in range(3)]
@@ -136,7 +136,7 @@ ny, bh = 46.4, 13.0
 arrow(28.6, ny, 33.2, ny, ms=4.5)                                   # augmented batch into the network
 label(30.7, ny - 2.6, "3×32×32", fs=3.6)
 box(33.4, ny - bh / 2, 6.4, bh, "3×3 conv\n64, BN\nReLU", key="stem", fs=4.0, r=0.9)
-label(36.6, ny - bh / 2 - 1.7, "stem", fs=3.8, style="italic")
+label(36.6, ny - bh / 2 - 1.7, "first layer", fs=3.8, style="italic")
 arrow(39.8, ny, 41.6, ny, ms=4)
 
 stages = [("Stage 1", "32×32", "64 ch", "s1", 41.8), ("Stage 2", "16×16", "128 ch", "s2", 54.2),
@@ -179,7 +179,7 @@ label(81.4, dy, "out", fs=4.2, color=C["ink"])
 arrow(36.6, dy + 2.6, 68.2, dy + 1.2, rad=-0.33, ms=4)
 label(53.0, dy - 4.9, "F(x): two 3×3 convolutions, no bias (BN follows), Kaiming init", fs=3.5)
 label(57.7, 9.0, "4,327,754 parameters, 648M MACs per image. Three stages at 32, 16 and 8 px instead of\n"
-      "ResNet-18's four: no 4×4 stage, the budget goes to width (3.3M parameters sit in the 8×8 stage)", fs=3.6, style="italic")
+      "ResNet-18's four: no 4×4 stage, the parameters go to width (3.3M of them are in the 8×8 stage)", fs=3.6, style="italic")
 
 # -------------------------------------------------------------------------------------------- (c) training
 panel(86.0, PY, 37.4, PH, "(c) Training objectives, one step")
@@ -195,12 +195,12 @@ box(105.8, ry - 3.6, 15.8, 7.2, "L = 0.1·CE + 0.9·KD\n(CE alone without KD)", 
 ky = 48.0                                                           # knowledge distillation group
 box(88.0, 40.0, 32.6, 14.8, "", fc="none", ec=C["kd"][1], ls=(0, (2.2, 1.6)), lw=0.6, r=1.1, zorder=2)
 label(88.9, 53.4, "knowledge distillation (KD models)", fs=4.2, bold=True, color=C["kd"][1], ha="left")
-box(88.8, ky - 3.6, 11.6, 7.6, "frozen teachers\n(same augmented x)\nCE1000 s26, CE800 s27", key="kd", fs=3.5, r=0.8)
+box(88.8, ky - 3.6, 11.6, 7.6, "frozen teachers\n(same augmented x)\n1,000 and 800 epochs", key="kd", fs=3.5, r=0.8)
 arrow(100.4, ky + 0.2, 101.8, ky + 0.2, ms=4)
 box(102.0, ky - 3.6, 8.6, 7.6, "mean of\nsoftmax(z$_t$ / T)\nT = 4", key="kd", fs=3.8, r=0.8)
 arrow(110.6, ky + 0.2, 112.0, ky + 0.2, ms=4)
 box(112.2, ky - 3.6, 8.0, 7.6, "KL · T²\nteacher ‖\nstudent", key="kd", fs=3.8, r=0.8)
-label(104.3, 42.6, "teachers trained from scratch on the same 45k, never on the held-out 5k", fs=3.2)
+label(104.3, 42.6, "teachers trained from scratch on the same 45,000 training images", fs=3.2)
 arrow(116.2, ky + 4.0, 116.2, ry - 3.8, ms=4)                       # KD term joins the loss
 
 sy = 30.0                                                           # SAM group
@@ -214,8 +214,8 @@ box(111.4, sy - 3.4, 8.8, 6.8, "pass 2: ∇L(w+ε)\nused for the step", key="sam
 label(104.3, 24.4, "weights restored after pass 2; weight decay stays in the SGD update", fs=3.2)
 
 oy = 12.0                                                           # optimizer row
-box(88.4, oy - 3.8, 21.4, 7.6, "SGD, Nesterov momentum 0.9\nlr 0.2, cosine to 0, 5-epoch warm-up\n"
-    "wd 5e-4 (not on BN), batch 256, bf16\n1000–1800 epochs", key="opt", fs=3.5, r=0.8)
+box(88.4, oy - 3.8, 21.4, 7.6, "SGD, Nesterov momentum 0.9\nlearning rate 0.2, cosine to 0, 5-epoch warm-up\n"
+    "weight decay 5e-4 (not on BN), batch 256\nbfloat16, 1000–1800 epochs", key="opt", fs=3.5, r=0.8)
 arrow(109.8, oy, 111.2, oy, ms=4)
 box(111.4, oy - 3.4, 9.2, 6.8, "EMA of weights\ndecay 0.999", key="ema", fs=3.9, r=0.8)
 route([(121.6, ry - 2.0), (122.5, ry - 2.0), (122.5, 19.0), (99.1, 19.0), (99.1, oy + 4.0)], ls=(0, (1.6, 1.3)), ms=4)
@@ -241,7 +241,7 @@ arrow(ix + 9.0, 47.2, ix + 6.8, 43.4, ms=4)
 box(ix, 36.0, 11.6, 7.2, "average the\ntwo logit vectors\nargmax → label", key="ema", fs=3.8, r=0.9)
 arrow(ix + 5.8, 36.0, ix + 5.8, 31.6, ms=4)
 box(ix, 25.0, 11.6, 6.4, "submission.csv\n2,000 ids", key="ema", fs=4.0, r=0.9)
-label(ix + 5.8, 20.6, "flip TTA: +0.0 to +0.4 pp\nheld-out; translation\nTTA: no gain, unused", fs=3.4, style="italic", va="top")
+label(ix + 5.8, 20.6, "flip at test time: +0.0 to\n+0.4 points validation;\ntranslation: no gain, unused", fs=3.4, style="italic", va="top")
 
 out = HERE / "pipeline"
 fig.savefig(out.with_suffix(".pdf"))

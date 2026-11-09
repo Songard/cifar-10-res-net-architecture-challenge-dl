@@ -338,8 +338,23 @@ of how the receipts were produced.
 - The networks are trained from scratch on the competition's training images only; no pretrained weights, no external data.
 - Model selection used the fixed held-out split. The leaderboard was consulted only to choose between finalists the
   held-out split could not separate (Kaggle's default selection of the two highest public scores was kept).
-- The hidden test images are read once, by `train.py predict`, to write the submission file: no batch-norm adaptation,
-  pseudo-labelling or inspection.
+- The final pipeline reads the hidden test images only through `train.py predict`, to write and reproduce the submission
+  files, with no batch-norm adaptation or pseudo-labelling.
+- On 2026-10-30 we examined the test images without labels to find out why public accuracy was so far below validation
+  accuracy. These are all the uses outside `train.py predict`:
+  - image statistics compared with the validation set (grayscale, clipping, borders, spectrum, noise, compression), including
+    per-channel affine and histogram maps fitted between the two sets;
+  - a nearest-neighbour search against the 45,000 training images for near-duplicates, which kept distances only and not
+    which training image matched;
+  - contact sheets, and a blind rating of a sample of test and validation images for typicality and image type, with no class
+    labels;
+  - a classifier separating test from validation images on image statistics and on network features, used to reweight
+    validation errors;
+  - agreement between the predictions of submitted models.
+
+  The findings influenced which experiments we tried next, for example random convolutions, which lowered validation
+  accuracy and were dropped. Nothing from this examination enters training or prediction, and its outputs and images are
+  not published.
 - Not in the repository: competition data and caches, checkpoints, prediction CSVs, the course handout, cluster stdout and
   the local console logs (`.gitignore`).
 

@@ -9,19 +9,19 @@ plain,CE 800,resnet20-x4,800,2027,97.50,0.840,,a100,project1-hpc/runs/cloud-x4-8
 plain,CE 1000,resnet20-x4,1000,2026,97.54,1.030,,a100,project1-hpc/runs/cloud-x4-1000-s2026
 plain,CE 1000,resnet20-x4,1000,2026,97.64,1.112,,a100,project1-hpc/artifacts/candidates/ce-x4-1000-epochseed-s2026
 plain,CE 1600,resnet20-x4,1600,2026,97.48,1.632,,a100,project1-hpc/runs/cloud-x4-1600-s2026
-plain,CE 1800,resnet20-x4,1800,2026,97.66,1.964,,a100,project1-hpc/artifacts/candidates/r2-ta1800-s2026
-plain,CE 1800,resnet20-x4,1800,2027,97.50,2.00,,a100,project1-hpc round-2 (cloud-evidence/ta1800-20261103-1254)
+plain,CE 1800,resnet20-x4,1800,2026,97.66,1.965,,a100,project1-hpc/artifacts/candidates/r2-ta1800-s2026
+plain,CE 1800,resnet20-x4,1800,2027,97.50,1.990,,a100,project1-hpc round-2 (cloud-evidence/ta1800-20261103-1254)
 plain,CE 2300,resnet20-x4,2300,2026,97.52,2.536,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2026
-plain,CE 2300,resnet20-x4,2300,2027,97.52,2.526,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2027
-plain,CE 3000,resnet20-x4,3000,2026,97.52,3.316,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2026
-plain,CE 3000,resnet20-x4,3000,2027,97.46,3.302,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2027
+plain,CE 2300,resnet20-x4,2300,2027,97.52,2.527,,a100,project1-hpc/artifacts/candidates/r2-ta2300-s2027
+plain,CE 3000,resnet20-x4,3000,2026,97.52,3.318,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2026
+plain,CE 3000,resnet20-x4,3000,2027,97.46,3.304,,a100,project1-hpc/artifacts/candidates/r2-ta3000-s2027
 kd,KD 400,resnet20-x4,400,2026,97.40,,,a100,project1-hpc/artifacts/candidates/cloud-kd-x4-400-s2026
 kd,KD 800,resnet20-x4,800,2026,97.66,1.025,,a100,project1-hpc/runs/cloud-kd-x4-800-s2026 (teachers trained on the Mac)
 kd,KD 800,resnet20-x4,800,2027,97.18,1.055,,a100,project1-hpc/runs/cloud-kd-x4-800-s2027
 kd,KD2 1800,resnet20-x4,1800,2026,97.62,2.527,1.870,a100,project1-hpc/artifacts/candidates/r2-kd2-ta1800-s2026
 kd,KD2 1800,resnet20-x4,1800,2027,97.66,2.481,1.870,a100,project1-hpc/artifacts/candidates/r2-kd2-ta1800-s2027
 kd,KD5 1800,resnet20-x4,1800,2026,97.64,3.425,4.287,a100,project1-hpc/artifacts/candidates/r2-kd5-ta1800-s2026 (one teacher trained on the Mac)
-kd,KD5 1800,resnet20-x4,1800,2027,97.66,3.357,4.287,a100,project1-hpc/artifacts/candidates/r2-kd5-ta1800-s2027
+kd,KD5 1800,resnet20-x4,1800,2027,97.66,3.363,4.287,a100,project1-hpc/artifacts/candidates/r2-kd5-ta1800-s2027
 sam,SAM 1000,resnet20-x4,1000,2026,97.72,1.769,,a100,project1-hpc/artifacts/candidates/sam-x4-1000-s2026
 sam,SAM 1800,resnet20-x4,1800,2026,97.58,3.195,,a100,project1-hpc/artifacts/candidates/sam-x4-1800-s2026
 aug,AA 400,resnet20-x4,400,2026,97.28,,,a100,project1-hpc round-2 screening
