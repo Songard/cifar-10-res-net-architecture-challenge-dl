@@ -1,0 +1,10 @@
+{
+  "competition": "cifar-10-res-net-architecture-challenge-dl",
+  "team": "jiaqi li nyu",
+  "retrieved": "2026-11-09",
+  "source": "Kaggle API, final public and private leaderboards, read by the author after the competition closed; the scores of other teams are not redistributed here",
+  "teams": 81,
+  "private": {"team_score": 87.4, "rank": 27, "median_score": 86.9, "rank_16_score": 87.9},
+  "public": {"team_score": 90.1, "rank": 30},
+  "mean_public_minus_private_over_teams": 2.83
+}
