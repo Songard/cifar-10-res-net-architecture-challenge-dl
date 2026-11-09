@@ -68,8 +68,7 @@ training, fine-tuning or unauthorized model selection.
 We worked in two phases. In the first phase, on a laptop GPU, we settled the training procedure and the architecture, moving
 from ResNet-18 variants reduced to fit the parameter limit to a wide three-stage network. In the second phase, on single A100
 GPUs of NYU's high-performance computing cluster, we spent about 56 GPU-hours on long training runs, knowledge distillation
-and sharpness-aware minimization (SAM), and we trained two random seeds for most settings. Our main findings are the
-following.
+and sharpness-aware minimization (SAM). Our main findings are the following.
 \begin{itemize}
 \item \textbf{The number of training epochs had the largest effect.} With the training procedure fixed, the same
 4.33M-parameter network reaches 96.72\% validation accuracy after 100 epochs, 97.34\% after 400 and 97.58\% after 1,800 (the last two are means of two seeds). Training for 2,300 or 3,000 epochs did not help further (97.52\% and 97.49\%).
@@ -131,7 +130,7 @@ ResNet-18 & 64--512 & 2,2,2,2 & 11.17M & 555M & -- \\
 \texttt{r20-x4} (final) & 64,128,256 & 3,3,3 & 4.33M & 648M & 4.0 \\
 \texttt{r20-w68} & 68,136,272 & 3,3,3 & 4.88M & 731M & 5.1 \\
 \texttt{highres} & 96,160,224 & 3,3,2 & 3.53M & 956M & 5.2 \\
-\texttt{preact} & 96,160,224 & 3,3,2 & 3.53M & 956M & 5.1 \\
+\texttt{preact} & 96,160,224 & 3,3,2 & 3.53M & 956M & 5.2 \\
 \bottomrule
 \end{tabular}
 \caption{Residual networks in this project (ResNet-18 is shown for reference and was not trained): number of channels in each stage, blocks per stage, trainable parameters
@@ -252,7 +251,7 @@ Batch-normalization statistics are updated in the first pass only, the EMA follo
 SGD update. One SAM epoch takes 1.6 times as long as a standard epoch (6.4 versus 4.0 seconds on the A100).
 
 \subsection{Computing resources}
-The first experiments ran on an Apple M5 Pro laptop (about 17 GPU-hours), and the long runs used single A100 GPUs of NYU's
+The first experiments ran on an Apple M5 Pro laptop (about 22 GPU-hours), and the long runs used single A100 GPUs of NYU's
 high-performance computing cluster (about 56 GPU-hours in 36 runs). Because cluster jobs are limited to two hours, each long run was
 split into consecutive jobs that resume from the last checkpoint.
 
@@ -362,7 +361,7 @@ comparison in which the SGD baseline was allowed twice as many epochs.
 Table~\ref{tab:screening} compares augmentation policies and architectures at 400 epochs. AutoAugment \cite{cubuk2019autoaugment}
 and TrivialAugment give the same accuracy within measurement noise (97.36\% and 97.34\%), and at 1,800 epochs AutoAugment is 0.14 percentage
 points lower (Table~\ref{tab:long}). RandAugment \cite{cubuk2020randaugment} with two operations at magnitude 9 is 0.36 points
-lower and takes 14\% longer per epoch. The two high-resolution architectures are within 0.03 points of \texttt{r20-x4} in the mean of two seeds but take 30\%
+lower and takes 13\% longer per epoch. The two high-resolution architectures are within 0.03 points of \texttt{r20-x4} in the mean of two seeds but take 30--32\%
 longer per epoch. The reduced ResNet-18 trained for 800 epochs reaches 97.40\%, which lies between the two \texttt{r20-x4} seeds
 trained for the same number of epochs (97.30\% and 97.50\%). No architecture was measurably better, so we kept \texttt{r20-x4},
 although the lead of 0.3 points that led us to choose it at 100 epochs did not persist with longer training.
@@ -376,12 +375,12 @@ although the lead of 0.3 points that led us to choose it at 100 epochs did not p
 Factor & Setting & \twoline{Seed}{2026} & \twoline{Seed}{2027} & Mean & s/epoch \\
 \midrule
 Augmentation & TrivialAugment & 97.36 & 97.32 & 97.34 & 3.97 \\
- & AutoAugment & 97.28 & 97.44 & 97.36 & 4.35 \\
- & RandAugment (2, 9) & 97.02 & 96.94 & 96.98 & 4.54 \\
+ & AutoAugment & 97.28 & 97.44 & 97.36 & 4.38 \\
+ & RandAugment (2, 9) & 97.02 & 96.94 & 96.98 & 4.50 \\
 \midrule
 Architecture & \texttt{r20-x4} & 97.36 & 97.32 & 97.34 & 3.97 \\
- & \texttt{highres} & 97.34 & 97.30 & 97.32 & 5.2 \\
- & \texttt{preact} & 97.40 & 97.34 & 97.37 & 5.1 \\
+ & \texttt{highres} & 97.34 & 97.30 & 97.32 & 5.24 \\
+ & \texttt{preact} & 97.40 & 97.34 & 97.37 & 5.16 \\
 \bottomrule
 \end{tabular}
 \caption{Comparison at 400 epochs (validation accuracy in \%, final training procedure otherwise). The architecture rows use
@@ -391,7 +390,7 @@ TrivialAugment and differ from \texttt{r20-x4} by at most two validation images 
 
 \subsection{Training curves}
 Figure~\ref{fig:curves} shows the validation accuracy of the standard, KD2 and SAM runs (seed 2026) over their 1,800 epochs. The
-three curves are indistinguishable for the first 1,500 epochs, and all of them gain about half a percentage point in the last 300,
+three curves are indistinguishable for the first 1,500 epochs, and all of them gain 0.2--0.4 percentage points in the last 300,
 as the learning rate decays to zero and the averaged weights settle. Accuracy on the augmented training batches ends at 93--94\%, four points below validation accuracy. Strong augmentation therefore remains the
 main source of regularization until the end of training, in contrast to the training-error curves of \citeauthor{he2016deep},
 which fall to nearly zero.
@@ -466,7 +465,7 @@ the small gains of distillation and SAM in Section~\ref{sec:schedule}.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.72\columnwidth]{figures/confusion.pdf}
+\includegraphics[width=0.66\columnwidth]{figures/confusion.pdf}
 \caption{Validation confusion matrix of the final KD2 model (averaged weights, flip test-time augmentation). Diagonal cells show the
 accuracy of each class (\%), and off-diagonal cells show error counts out of 500 images per class.}
 \label{fig:confusion}

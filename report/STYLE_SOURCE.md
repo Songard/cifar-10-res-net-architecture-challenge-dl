@@ -202,3 +202,7 @@ now say so, and the README lists every use.
 To stay within eight pages: venue names in `references.bib` are abbreviated (CVPR, ICLR, and so on), lessons 5 and 6 are removed because
 Section 2.6 and Section 3.5 say the same, the public-score example in lesson 4 and two secondary sentences in Section 3.4 are removed,
 and the sentence on how often the two final models disagree is removed from Section 3.5.
+
+Numbers corrected against the run logs (2026-11-09): the gain in the last 300 epochs in Section 3.4 is 0.2-0.4 points; time per epoch in Table 5
+is the mean of the two seeds in every row, and Table 1 and the percentages in Section 3.3 follow from it; the laptop figure in Section 2.6 is
+about 22 hours of training steps, the same accounting as the 56 hours on the cluster.

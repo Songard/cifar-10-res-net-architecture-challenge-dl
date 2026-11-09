@@ -1,13 +1,15 @@
 """Result figures for the Project 1 report.
 
 Inputs (all in ./data, every number traceable to a run directory or a Kaggle receipt):
-  experiments.csv   held-out accuracy (EMA weights + flip TTA, fixed 5,000-image split) and A100 training-step
+  experiments.csv   validation accuracy (EMA weights + flip TTA, fixed 5,000-image split) and A100 training-step
                     hours of every completed experiment; `source` names the run or evidence directory.
-  submissions.csv   the 21 Kaggle uploads with their held-out accuracy and public-leaderboard score.
-  curves_1800.json  per-epoch metrics of the three 1,800-epoch seed-2026 runs (plain, KD2, SAM).
+  submissions.csv   the 21 Kaggle uploads with their validation accuracy and public and private leaderboard scores.
+  curves_1800.json  per-epoch metrics of the three 1,800-epoch seed-2026 runs (standard, KD2, SAM).
   heldout_eval.json per-class accuracy, confusion matrices and pairwise agreement of the final candidates.
+  error_analysis.json  per-image error statistics written by make_error_analysis.py.
 
-Outputs: schedule.pdf, curves.pdf, scatter.pdf, confusion.pdf (+ .png previews) in this directory.
+Outputs: schedule.pdf, curves.pdf, confusion.pdf, errors.pdf (+ .png previews) in this directory, all used by the report,
+and scatter.pdf, public against validation accuracy, which the report no longer uses.
 """
 import csv
 import json

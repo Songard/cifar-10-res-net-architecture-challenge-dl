@@ -274,7 +274,7 @@ check("runs on the cluster", len(cluster_runs), 36, 0)
 check("A100 hours of training steps in these runs", sum(training_hours(run) for run in cluster_runs), 56, 0)
 laptop_validated = [run for run in laptop_runs if read_log(run)[1].get("validation_held_out", True)]
 print(f"    laptop: {sum(training_hours(run) for run in laptop_runs):.1f} hours of training steps in {len(laptop_runs)} runs, "
-      f"{sum(training_hours(run) for run in laptop_validated):.1f} hours without the run on all 50,000 images   (report: about 17)")
+      f"{sum(training_hours(run) for run in laptop_validated):.1f} hours without the run on all 50,000 images   (report: about 22, the training steps of all laptop runs)")
 summarize(start)
 
 # %% [markdown]
