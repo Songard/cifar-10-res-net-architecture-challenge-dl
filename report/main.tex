@@ -60,28 +60,28 @@ training logs are released.
 \end{abstract}
 
 \section{Overview}
-The competition asks for a convolutional network with skip connections and at most 5,000,000 trainable parameters. The
-network must be trained from scratch on the 50,000 labeled $32{\times}32$ images provided with the competition, and it is
-scored on 2,000 hidden test images ``from a version of'' CIFAR-10 \cite{krizhevsky2009learning,kaggle2026competition}. Half
-of the test images form the public leaderboard, which is visible during the competition, and the other half decides the
-final ranking. Pretrained weights and external data are not allowed, and the test images must not be manually labeled or used for
-training, fine-tuning or unauthorized model selection.
+The competition asks for a residual convolutional network with at most five million trainable parameters, trained from
+scratch on the supplied CIFAR-10 images \cite{krizhevsky2009learning,kaggle2026competition}. Half of the hidden test set
+forms the public leaderboard during development; the other half determines the final ranking. Pretrained weights and
+external data are not allowed, and test images must not be manually labeled or used for training, fine-tuning or
+unauthorized model selection.
 
-We worked in two phases. In the first phase, on a laptop GPU, we settled the training procedure and the architecture, moving
-from ResNet-18 variants reduced to fit the parameter limit to a wide three-stage network. In the second phase, on single A100
-GPUs of NYU's high-performance computing cluster, we spent about 56 GPU-hours on long training runs, knowledge distillation
-and sharpness-aware minimization (SAM). Our main findings are the following.
-\begin{itemize}
-\item \textbf{The number of training epochs had the largest effect.} With the training procedure fixed, the same
-4.33M-parameter network reaches 96.72\% validation accuracy after 100 epochs, 97.34\% after 400 and 97.58\% after 1,800 (the last two are means of two seeds). Training for 2,300 or 3,000 epochs did not help further (97.52\% and 97.49\%).
-\item \textbf{Within the parameter limit, the architecture mattered less than the training procedure.} Four architectures
-with 3.5--4.8M parameters and 450--960M multiply-accumulate operations per image are within 0.1 percentage points of each
-other when trained for 400 or 800 epochs.
-\item \textbf{Distillation and SAM gave small gains that depend on how the cost is counted.} For the same training time as a standard run, distillation from two of our own networks adds about 0.1 percentage points and SAM adds 0.14 points, both less than one standard error. When the teachers' training time is included, the distillation students take 2.2 times as long as a standard 1,800-epoch run for three more correct validation images.
-\item \textbf{The remaining errors are largely shared across training methods.} About half of the errors of our 1,800-epoch models
-are common to all of them, and cat and dog did not benefit from longer training (Section~\ref{sec:errors}).
-\item \textbf{We chose the final submissions by public score because the validation set cannot separate them.} We kept Kaggle's default selection, our two highest public scores. They score 87.1\% and 87.4\% on the private leaderboard, which places us 27th of 81 teams (Section~\ref{sec:test}).
-\end{itemize}
+We first developed the training procedure on a laptop GPU, moving from reduced-width ResNet-18 variants to a wide
+three-stage network. We then used single A100 GPUs on NYU's high-performance computing cluster to study longer training,
+knowledge distillation and sharpness-aware minimization (SAM). The aim was to understand which changes improved accuracy
+within the parameter budget and whether their gains justified the additional computation.
+
+\textbf{Longer training was the main source of improvement once the architecture was fixed.} Accuracy eventually
+plateaued, while alternative architectures and augmentation policies produced only small differences in our longer runs.
+Distillation and SAM also offered modest gains at comparable training times. Including the cost of training the teachers
+made distillation substantially more expensive for little additional accuracy. These comparisons motivate the emphasis on
+training duration and measured computing cost in the results, rather than on architectural complexity alone.
+
+\textbf{The remaining errors were largely shared across training methods}, particularly in the cat and dog classes,
+which did not benefit from longer training (Section~\ref{sec:errors}). With validation scores closely clustered, we retained
+Kaggle's default selection of our two highest-public-scoring submissions, trained with distillation and SAM. The better
+final submission achieved \textbf{87.4\% private test accuracy}. Section~\ref{sec:test} reports both results and examines why
+small validation gains did not consistently carry over to the hidden test set.
 
 \section{Methodology}
 This section describes the data split and evaluation protocol, the network architectures and the training procedure. The pros and cons of the architectural choices and the lessons we learned depend on the results, so we discuss them in Section~\ref{sec:discussion}.
