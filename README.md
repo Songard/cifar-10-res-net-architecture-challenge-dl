@@ -27,7 +27,7 @@ on the private half after it closes, by the better private score of the two subm
 default selection, our two highest public scores, so the final test accuracy is the 87.4% of the SAM model. It places the
 team 27th of 81 on the private leaderboard, where the median is 86.9% and the 16th place, the top 20%, scored 87.9%; on the
 final public leaderboard the team is 30th of 81 with 90.1%. Validation accuracy is measured on a fixed set of 5,000 training
-images (500 per class) that no submitted model was trained on, and "all test images" is the mean of the two halves.
+images (500 per class) that neither final model was trained on, and "all test images" is the mean of the two halves.
 
 The main finding of the report is that, within the parameter limit, the number of training epochs matters most. With the
 architecture and the training procedure fixed, validation accuracy rises from 96.7% after 100 epochs to 97.3% after 400 and
@@ -192,7 +192,7 @@ cluster's CUDA Singularity image and a `venv/` next to the code, and the third `
 
 Training-step time on one A100 with batch size 256 and 45,000 images: standard training 3.9 to 4.0 s per epoch (about 2.0
 hours for 1,800 epochs), KD2 5.0 s (2.5 hours) plus 1.87 hours for the two teachers, KD5 6.8 s (3.4 hours), SAM 6.4 s (3.2
-hours). On the laptop GPU the same network trains at about 24 s per epoch with the same procedure (`runs/x4-400ep-45k`).
+hours). On the laptop GPU the training steps of the same network take about 22 s per epoch with the same procedure (`runs/x4-400ep-45k`).
 Results on other hardware need not match the published runs bit for bit; the published per-epoch logs show the expected
 curves.
 
@@ -202,8 +202,7 @@ curves.
 
 The two final checkpoints are the `last.pt` files of the two runs: model and EMA weights, optimizer and random-number-generator
 states, the data record and the resolved settings, 52 MB each. They are not in the git history; they are published as assets
-of a GitHub release of this repository (https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl/releases, once
-published):
+of a GitHub release of this repository (https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl/releases):
 
 | Release asset | Run | SHA-256 | Size |
 | --- | --- | --- | ---: |
@@ -302,7 +301,7 @@ many were compared and whether any differs.
 
 `report/figures/make_results_figures.py` draws Figures 2 to 5 (`schedule_figure`, `curves_figure`, `confusion_figure`,
 `errors_figure`); its `scatter_figure`, public against validation accuracy, is no longer used by the report.
-`report/STYLE_SOURCE.md` records how the PDF is built and how the report was revised. Of the checkpoints the analyses need,
+`report/STYLE_SOURCE.md` records the template and how the PDF is built. Of the checkpoints the analyses need,
 only those of the two final models are published; the notebook skips the steps whose checkpoints it does not find and reads
 those numbers from the data files.
 
@@ -350,7 +349,8 @@ the verified official dataset" or "needs the published cluster run records" are 
 Every `config.json` records `code_sha256`, the SHA-256 of `model.py`, `train.py` and `prepare_data.py` when the run
 started (and `code_sha256_at_start` for a run resumed in a later job). The published sources are the last revision; the
 earlier ones differ only by features added later, with the defaults that reproduce the earlier behaviour (`LATER_DEFAULTS` in
-`train.py`), and all published checkpoints load with the current code.
+`train.py`), and all published checkpoints load with the current code. The published `model.py` (`18b264e2`) is `b7c1165e`
+plus the `resnet20-w68` entry and its comment.
 
 | `train.py` SHA-256 (prefix) | `model.py` | Runs |
 | --- | --- | --- |
@@ -373,7 +373,8 @@ of how the receipts were produced.
 - The final pipeline reads the hidden test images only through `train.py predict`, to write and reproduce the submission
   files, with no batch-norm adaptation or pseudo-labelling.
 - On 2026-10-30 we examined the test images without labels to find out why public accuracy was so far below validation
-  accuracy. These are all the uses outside `train.py predict`:
+  accuracy. Apart from verifying and caching the files (`import_official.py`, `prepare_data.py`), these are all the uses
+  outside `train.py predict`:
   - image statistics compared with the validation set (grayscale, clipping, borders, spectrum, noise, compression), including
     per-channel affine and histogram maps fitted between the two sets;
   - a nearest-neighbour search against the 45,000 training images for near-duplicates, which kept distances only and not

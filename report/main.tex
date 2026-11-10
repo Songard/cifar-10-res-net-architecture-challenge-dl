@@ -32,13 +32,15 @@
 \fi
 \setcounter{secnumdepth}{2}
 
+% A clickable link without hyperref, which the AAAI style forbids.
+\newcommand{\weblink}[2]{\ifdefined\XeTeXversion\special{pdf:bann << /Subtype /Link /Border [0 0 0] /A << /S /URI /URI (#1) >> >>}#2\special{pdf:eann}\else\pdfstartlink attr{/Border [0 0 0]} user{/Subtype /Link /A << /S /URI /URI (#1) >>}#2\pdfendlink\fi}
 \newcommand{\twoline}[2]{\begin{tabular}[b]{@{}c@{}}#1\\#2\end{tabular}}
 
 \title{A 4.3M-Parameter Residual Network for CIFAR-10}
 \author{Jiaqi Li (NetID jl18215)\\
 New York University, CS-GY 6953 / ECE-GY 7123 Deep Learning, Fall 2026\\
 Kaggle team: \texttt{jiaqi li nyu}\\
-Code: \url{https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl}
+Code: \weblink{https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl}{\url{https://github.com/Songard/cifar-10-res-net-architecture-challenge-dl}}
 }
 
 \begin{document}
@@ -88,7 +90,7 @@ This section describes the data split and evaluation protocol, the network archi
 We split the 50,000 labeled images once, stratified by class with random seed 2026, into 45,000 training images and 5,000
 validation images (500 per class), and we checked that no pixel-identical image appears on both sides of the split. The
 per-channel normalization statistics are computed on the 45,000 training images only. Every model-selection decision during
-development uses this fixed validation set, and the models we submitted were never trained on it. The public leaderboard was
+development uses this fixed validation set, and the two final submissions were never trained on it. The public leaderboard was
 used only for the final choice among submissions that the validation set does not separate (Section~\ref{sec:test}). Training and validation never use the hidden test images, and the final pipeline reads them only to write the submission
 files. Early in the project we also examined them without labels to find out why public accuracy was so far below validation
 accuracy, using image statistics, nearest neighbors, viewed and rated samples, a classifier against validation images and the
@@ -113,7 +115,7 @@ with $3{\times}3$ convolutions. $S$ is the identity, except in the first block o
 changes the number of channels, where it is a $1{\times}1$ convolution with batch normalization \cite{ioffe2015batch,he2016deep}.
 A $3{\times}3$ convolution replaces the $7{\times}7$ convolution and max-pooling at the start of the ImageNet network, as in
 the CIFAR adaptation of the reference code recommended by the instructor \cite{kuangliu}. Global average pooling and one
-linear layer end the network. Table~\ref{tab:archs} lists the architectures we trained, and Figure~\ref{fig:pipeline} shows
+linear layer end the network. Table~\ref{tab:archs} lists the architectures we considered, and Figure~\ref{fig:pipeline} shows
 the final one together with the training pipeline.
 
 \begin{table}[t]
@@ -191,7 +193,7 @@ Augmentation policy & none & TrivialAugment \\
 Cutout & none & $16{\times}16$ \\
 Label smoothing & 0 & 0.1 \\
 Moving average of weights & none & 0.999 per step \\
-Test-time augmentation & none & horizontal flip \\
+Test-time augmentation & horizontal flip & same \\
 Precision & 32-bit float & mixed (bfloat16) \\
 \bottomrule
 \end{tabular}
@@ -518,6 +520,8 @@ the number of training epochs was the only change that improved validation accur
 our own networks and SAM produced our two best public scores, but only small gains for the same training time, and on the private half they cannot be separated from standard training. The remaining errors are concentrated in cat and dog and are largely shared by all our models. The code, configurations
 and per-epoch logs behind the reported numbers are in the linked repository, and the checkpoints of the two final models are on its
 Releases page.
+
+\paragraph{AI assistance.} Claude and Codex assisted with code, experiments, and report preparation.
 
 \bibliographystyle{aaai}
 \bibliography{references}

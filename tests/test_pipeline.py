@@ -85,7 +85,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(np.random.rand(), expected[1])
         torch.testing.assert_close(torch.rand(2), expected[2])
 
-    @unittest.skipUnless(Path("data/cache/audit.json").exists(), "Needs the verified official dataset")
+    @unittest.skipUnless(Path("data/cache/train_images.npy").exists(), "Needs the verified official dataset")
     def test_real_validation_is_deterministic_and_split_is_complete(self):
         data = Data(Path("data"), torch.device("cpu"), "batched", False)
         self.assertEqual(len(data.train), 45000)
@@ -173,7 +173,7 @@ class PipelineTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         load_teachers([path], device, data)
 
-    @unittest.skipUnless(Path("data/cache/audit.json").exists(), "Needs the verified official dataset")
+    @unittest.skipUnless(Path("data/cache/train_images.npy").exists(), "Needs the verified official dataset")
     def test_predict_writes_csv_and_audit_for_registry_checkpoints(self):
         import json
         from train import predict
@@ -190,7 +190,7 @@ class PipelineTests(unittest.TestCase):
             receipt = json.loads(output.with_suffix(".audit.json").read_text())
             self.assertEqual((receipt["rows"], receipt["arch"], receipt["tta"]), (2000, "resnet18-w32", "flip"))
 
-    @unittest.skipUnless(Path("data/cache/audit.json").exists(), "Needs the verified official dataset")
+    @unittest.skipUnless(Path("data/cache/train_images.npy").exists(), "Needs the verified official dataset")
     def test_full_train_split_and_policy_images(self):
         data = Data(Path("data"), torch.device("cpu"), "batched", False, full_train=True)
         self.assertEqual(len(data.train), 50000)
